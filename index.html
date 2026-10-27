@@ -4,15 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Controle Financeiro</title>
-
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Financeiro">
   <link rel="apple-touch-icon" href="icon-192.png">
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -25,6 +22,7 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
     .modal-backdrop { backdrop-filter: blur(6px); }
     select, input { font-size: 16px !important; }
+    .tab-btn.active { background: #2563eb; color: white; }
   </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -32,9 +30,7 @@
   <header class="bg-blue-600 text-white sticky top-0 z-40 shadow">
     <div class="max-w-lg mx-auto px-3 pt-3 pb-2.5">
       <div class="flex items-center gap-2.5 mb-2">
-        <div class="bg-white/20 p-1.5 rounded-lg">
-          <i class="fas fa-wallet text-sm"></i>
-        </div>
+        <div class="bg-white/20 p-1.5 rounded-lg"><i class="fas fa-wallet text-sm"></i></div>
         <div>
           <h1 class="text-base font-bold leading-tight">Controle Financeiro</h1>
           <p class="text-blue-100 text-[10px]">Ganhos e gastos</p>
@@ -59,79 +55,101 @@
 
   <main class="max-w-lg mx-auto px-2.5 py-2.5 space-y-2.5 pb-16">
 
-    <section class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-2 py-2 border-b border-slate-100">
-        <button id="prev-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
-          <i class="fas fa-chevron-left text-slate-500 text-xs"></i>
-        </button>
-        <h2 id="month-label" class="text-sm font-semibold"></h2>
-        <button id="next-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
-          <i class="fas fa-chevron-right text-slate-500 text-xs"></i>
-        </button>
-      </div>
-      <div class="grid grid-cols-7 text-center text-[10px] font-medium text-slate-400 py-1">
-        <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
-      </div>
-      <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 px-1.5 pb-1.5"></div>
-      <div class="flex items-center justify-center gap-3 py-1.5 border-t border-slate-50 text-[10px] text-slate-400">
-        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Ganho</span>
-        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gasto</span>
-        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#3b82f6 50%,#ef4444 50%)"></span> Ambos</span>
-      </div>
-    </section>
+    <!-- Abas -->
+    <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm">
+      <button id="tab-calendario" class="tab-btn active flex-1 py-2 rounded-lg text-xs font-medium transition">Calendário</button>
+      <button id="tab-historico" class="tab-btn flex-1 py-2 rounded-lg text-xs font-medium text-slate-500 transition">Histórico</button>
+    </div>
 
-    <section class="bg-white rounded-xl shadow-sm p-3">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <p class="text-[10px] text-slate-400">Dia selecionado</p>
-          <h3 id="selected-day-label" class="text-sm font-semibold capitalize">—</h3>
+    <!-- VIEW CALENDÁRIO -->
+    <div id="view-calendario">
+      <section class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-2 py-2 border-b border-slate-100">
+          <button id="prev-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
+            <i class="fas fa-chevron-left text-slate-500 text-xs"></i>
+          </button>
+          <h2 id="month-label" class="text-sm font-semibold"></h2>
+          <button id="next-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
+            <i class="fas fa-chevron-right text-slate-500 text-xs"></i>
+          </button>
         </div>
-        <button id="btn-add" class="bg-blue-600 active:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-sm">
-          <i class="fas fa-plus text-[10px]"></i> Adicionar
-        </button>
-      </div>
-      <div class="grid grid-cols-3 gap-1.5 mb-2">
-        <div class="bg-blue-50 rounded-lg p-1.5 text-center">
-          <p class="text-[9px] text-blue-600 font-medium">Ganhos</p>
-          <p id="day-income" class="text-[11px] font-bold text-blue-700">R$ 0,00</p>
+        <div class="grid grid-cols-7 text-center text-[10px] font-medium text-slate-400 py-1">
+          <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
         </div>
-        <div class="bg-red-50 rounded-lg p-1.5 text-center">
-          <p class="text-[9px] text-red-600 font-medium">Gastos</p>
-          <p id="day-expense" class="text-[11px] font-bold text-red-700">R$ 0,00</p>
+        <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 px-1.5 pb-1.5"></div>
+        <div class="flex items-center justify-center gap-3 py-1.5 border-t border-slate-50 text-[10px] text-slate-400">
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Ganho</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gasto</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#3b82f6 50%,#ef4444 50%)"></span> Ambos</span>
         </div>
-        <div class="bg-slate-100 rounded-lg p-1.5 text-center">
-          <p class="text-[9px] text-slate-500 font-medium">Saldo</p>
-          <p id="day-balance" class="text-[11px] font-bold text-slate-700">R$ 0,00</p>
-        </div>
-      </div>
-      <div id="transactions-list" class="space-y-1.5 max-h-40 overflow-y-auto">
-        <p class="text-center text-slate-400 text-xs py-4">Toque em um dia no calendário</p>
-      </div>
-    </section>
+      </section>
 
-    <section class="bg-white rounded-xl shadow-sm p-3">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-xs flex items-center gap-1.5">
-          <i class="fas fa-chart-pie text-blue-600 text-[11px]"></i> Resumo do mês
-        </h3>
-        <div class="flex gap-1 text-[10px]">
-          <button id="tab-expense" class="px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium">Gastos</button>
-          <button id="tab-income" class="px-2 py-0.5 rounded-md text-slate-400">Ganhos</button>
+      <section class="bg-white rounded-xl shadow-sm p-3 mt-2.5">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <p class="text-[10px] text-slate-400">Dia selecionado</p>
+            <h3 id="selected-day-label" class="text-sm font-semibold capitalize">—</h3>
+          </div>
+          <button id="btn-add" class="bg-blue-600 active:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-sm">
+            <i class="fas fa-plus text-[10px]"></i> Adicionar
+          </button>
         </div>
-      </div>
-      <div id="categories-summary" class="space-y-2 text-xs">
-        <p class="text-slate-400 text-center py-3 text-[10px]">Nenhum registro</p>
-      </div>
-    </section>
+        <div class="grid grid-cols-3 gap-1.5 mb-2">
+          <div class="bg-blue-50 rounded-lg p-1.5 text-center">
+            <p class="text-[9px] text-blue-600 font-medium">Ganhos</p>
+            <p id="day-income" class="text-[11px] font-bold text-blue-700">R$ 0,00</p>
+          </div>
+          <div class="bg-red-50 rounded-lg p-1.5 text-center">
+            <p class="text-[9px] text-red-600 font-medium">Gastos</p>
+            <p id="day-expense" class="text-[11px] font-bold text-red-700">R$ 0,00</p>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-1.5 text-center">
+            <p class="text-[9px] text-slate-500 font-medium">Saldo</p>
+            <p id="day-balance" class="text-[11px] font-bold text-slate-700">R$ 0,00</p>
+          </div>
+        </div>
+        <div id="transactions-list" class="space-y-1.5 max-h-36 overflow-y-auto">
+          <p class="text-center text-slate-400 text-xs py-4">Toque em um dia no calendário</p>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm p-3 mt-2.5">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-semibold text-xs flex items-center gap-1.5">
+            <i class="fas fa-chart-pie text-blue-600 text-[11px]"></i> Resumo do mês
+          </h3>
+          <div class="flex gap-1 text-[10px]">
+            <button id="tab-expense" class="px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium">Gastos</button>
+            <button id="tab-income" class="px-2 py-0.5 rounded-md text-slate-400">Ganhos</button>
+          </div>
+        </div>
+        <div id="categories-summary" class="space-y-2 text-xs">
+          <p class="text-slate-400 text-center py-3 text-[10px]">Nenhum registro</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- VIEW HISTÓRICO -->
+    <div id="view-historico" class="hidden">
+      <section class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="grid grid-cols-4 gap-1 px-3 py-2.5 bg-slate-50 border-b border-slate-100 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div>Mês</div>
+          <div class="text-right text-blue-600">Ganhos</div>
+          <div class="text-right text-red-500">Gastos</div>
+          <div class="text-right">Saldo</div>
+        </div>
+        <div id="history-list" class="divide-y divide-slate-50">
+          <p class="text-slate-400 text-center py-8 text-xs">Nenhum mês com registros</p>
+        </div>
+      </section>
+    </div>
   </main>
 
   <div id="modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
     <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div id="modal-header" class="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0">
         <h3 id="modal-title" class="text-white font-semibold text-sm">Novo Registro</h3>
-        <button id="close-modal" class="text-white/80 w-8 h-8 flex items-center justify-center">
-          <i class="fas fa-times"></i>
-        </button>
+        <button id="close-modal" class="text-white/80 w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
       </div>
       <form id="form" class="p-4 space-y-3.5">
         <input type="hidden" id="item-id" />
@@ -148,23 +166,23 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
-          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Descrição</label>
-          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Valor (R$)</label>
-          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Categoria</label>
-          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"></select>
+          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"></select>
         </div>
         <div class="flex gap-2.5 pt-1 pb-1">
-          <button type="button" id="cancel-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm active:bg-slate-50">Cancelar</button>
-          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-medium text-sm">Salvar</button>
+          <button type="button" id="cancel-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancelar</button>
+          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-medium text-sm">Salvar</button>
         </div>
       </form>
     </div>
@@ -200,8 +218,8 @@
     let summaryTab = 'expense';
     let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
 
-    function formatCurrency(value) {
-      return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    function formatCurrency(v) {
+      return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
     function toKey(y, m, d) {
       return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
@@ -211,10 +229,10 @@
       return new Date(p[0], p[1] - 1, p[2]);
     }
     function showToast(msg) {
-      var toast = document.getElementById('toast');
+      var t = document.getElementById('toast');
       document.getElementById('toast-msg').textContent = msg;
-      toast.classList.remove('translate-y-14', 'opacity-0');
-      setTimeout(function() { toast.classList.add('translate-y-14', 'opacity-0'); }, 2000);
+      t.classList.remove('translate-y-14', 'opacity-0');
+      setTimeout(function() { t.classList.add('translate-y-14', 'opacity-0'); }, 2000);
     }
     function saveData() {
       localStorage.setItem('financeiro_calendar', JSON.stringify(data));
@@ -230,6 +248,24 @@
         select.appendChild(opt);
       });
     }
+
+    document.getElementById('tab-calendario').addEventListener('click', function() {
+      this.classList.add('active');
+      this.classList.remove('text-slate-500');
+      document.getElementById('tab-historico').classList.remove('active');
+      document.getElementById('tab-historico').classList.add('text-slate-500');
+      document.getElementById('view-calendario').classList.remove('hidden');
+      document.getElementById('view-historico').classList.add('hidden');
+    });
+    document.getElementById('tab-historico').addEventListener('click', function() {
+      this.classList.add('active');
+      this.classList.remove('text-slate-500');
+      document.getElementById('tab-calendario').classList.remove('active');
+      document.getElementById('tab-calendario').classList.add('text-slate-500');
+      document.getElementById('view-calendario').classList.add('hidden');
+      document.getElementById('view-historico').classList.remove('hidden');
+      renderHistory();
+    });
 
     function renderCalendar() {
       var year = currentDate.getFullYear();
@@ -269,11 +305,8 @@
           if (hasIncome && hasExpense) {
             dot.style.background = 'linear-gradient(90deg, #3b82f6 50%, #ef4444 50%)';
             dot.style.width = '7px';
-          } else if (hasIncome) {
-            dot.style.background = '#3b82f6';
-          } else {
-            dot.style.background = '#ef4444';
-          }
+          } else if (hasIncome) dot.style.background = '#3b82f6';
+          else dot.style.background = '#ef4444';
           cell.appendChild(dot);
         }
         cell.addEventListener('click', function() {
@@ -409,6 +442,58 @@
       });
     }
 
+    function renderHistory() {
+      var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      var monthTotals = {};
+      Object.keys(data).forEach(function(key) {
+        var prefix = key.substring(0, 7);
+        if (!monthTotals[prefix]) monthTotals[prefix] = { income: 0, expense: 0 };
+        data[key].forEach(function(i) {
+          if (i.type === 'income') monthTotals[prefix].income += i.amount;
+          else monthTotals[prefix].expense += i.amount;
+        });
+      });
+      var months = Object.keys(monthTotals).sort().reverse();
+      var container = document.getElementById('history-list');
+      if (months.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center py-8 text-xs">Nenhum mês com registros</p>';
+        return;
+      }
+      container.innerHTML = '';
+      months.forEach(function(prefix) {
+        var parts = prefix.split('-');
+        var y = parseInt(parts[0], 10);
+        var m = parseInt(parts[1], 10) - 1;
+        var label = monthNames[m].substring(0, 3) + ' ' + y;
+        var inc = monthTotals[prefix].income;
+        var exp = monthTotals[prefix].expense;
+        var bal = inc - exp;
+        var isCurrent = (y === currentDate.getFullYear() && m === currentDate.getMonth());
+
+        var row = document.createElement('div');
+        row.className = 'grid grid-cols-4 gap-1 px-3 py-3 items-center text-xs ' + (isCurrent ? 'bg-blue-50' : 'active:bg-slate-50');
+        row.style.cursor = 'pointer';
+        row.innerHTML =
+          '<div class="font-semibold ' + (isCurrent ? 'text-blue-700' : 'text-slate-700') + '">' + label + '</div>' +
+          '<div class="text-right text-blue-600 font-medium">' + formatCurrency(inc) + '</div>' +
+          '<div class="text-right text-red-500 font-medium">' + formatCurrency(exp) + '</div>' +
+          '<div class="text-right font-bold ' + (bal >= 0 ? 'text-blue-700' : 'text-red-600') + '">' + formatCurrency(bal) + '</div>';
+
+        row.addEventListener('click', function() {
+          currentDate = new Date(y, m, 1);
+          selectedDate = toKey(y, m, 1);
+          var found = false;
+          Object.keys(data).forEach(function(k) {
+            if (!found && k.indexOf(prefix) === 0) { selectedDate = k; found = true; }
+          });
+          document.getElementById('tab-calendario').click();
+          renderCalendar();
+          renderDayPanel();
+        });
+        container.appendChild(row);
+      });
+    }
+
     var modal = document.getElementById('modal');
     var form = document.getElementById('form');
 
@@ -422,12 +507,12 @@
         incomeBtn.className = 'py-2.5 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-medium text-sm flex items-center justify-center gap-2';
         expenseBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
         header.className = 'bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0';
-        submit.className = 'flex-1 py-2.5 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-medium text-sm';
+        submit.className = 'flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-medium text-sm';
       } else {
         expenseBtn.className = 'py-2.5 rounded-xl border-2 border-red-300 bg-red-50 text-red-600 font-medium text-sm flex items-center justify-center gap-2';
         incomeBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
         header.className = 'bg-red-500 px-4 py-3 flex items-center justify-between sticky top-0';
-        submit.className = 'flex-1 py-2.5 rounded-xl bg-red-500 active:bg-red-600 text-white font-medium text-sm';
+        submit.className = 'flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium text-sm';
       }
       fillCategories();
     }
@@ -460,7 +545,6 @@
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
-
     function closeModal() {
       modal.classList.add('hidden');
       modal.classList.remove('flex');
@@ -552,11 +636,8 @@
     renderCalendar();
     renderDayPanel();
 
-    // Registrar Service Worker (PWA)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(function() { console.log('PWA pronto para instalar'); })
-        .catch(function(err) { console.log('Erro no Service Worker:', err); });
+      navigator.serviceWorker.register('./sw.js').catch(function() {});
     }
   </script>
 </body>

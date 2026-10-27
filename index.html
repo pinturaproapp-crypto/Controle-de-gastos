@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Controle Financeiro</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Financeiro">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -542,6 +551,13 @@
     selectedDate = toKey(today.getFullYear(), today.getMonth(), today.getDate());
     renderCalendar();
     renderDayPanel();
+
+    // Registrar Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(function() { console.log('PWA pronto para instalar'); })
+        .catch(function(err) { console.log('Erro no Service Worker:', err); });
+    }
   </script>
 </body>
 </html>

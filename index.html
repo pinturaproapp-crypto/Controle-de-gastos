@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Controle Financeiro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background: #f1f5f9; }
+    .calendar-day { min-height: 32px; font-size: 12px; }
+    .day-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 1px; }
+    .expense-item { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-backdrop { backdrop-filter: blur(6px); }
+    select, input { font-size: 16px !important; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+  <header class="bg-blue-600 text-white sticky top-0 z-40 shadow">
+    <div class="max-w-lg mx-auto px-3 pt-3 pb-2.5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <div class="bg-white/20 p-1.5 rounded-lg">
+          <i class="fas fa-wallet text-sm"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold leading-tight">Controle Financeiro</h1>
+          <p class="text-blue-100 text-[10px]">Ganhos e gastos</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 text-center">
+        <div class="bg-white/15 rounded-lg py-1.5 px-1">
+          <p class="text-[9px] text-blue-100">Ganhos</p>
+          <p id="month-income" class="text-xs font-bold">R$ 0,00</p>
+        </div>
+        <div class="bg-white/15 rounded-lg py-1.5 px-1">
+          <p class="text-[9px] text-blue-100">Gastos</p>
+          <p id="month-expense" class="text-xs font-bold">R$ 0,00</p>
+        </div>
+        <div class="bg-white/25 rounded-lg py-1.5 px-1">
+          <p class="text-[9px] text-blue-100">Saldo</p>
+          <p id="month-balance" class="text-xs font-bold">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-2.5 py-2.5 space-y-2.5 pb-16">
+
+    <section class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-2 py-2 border-b border-slate-100">
+        <button id="prev-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
+          <i class="fas fa-chevron-left text-slate-500 text-xs"></i>
+        </button>
+        <h2 id="month-label" class="text-sm font-semibold"></h2>
+        <button id="next-month" class="w-8 h-8 rounded-lg bg-slate-50 active:bg-slate-200 flex items-center justify-center">
+          <i class="fas fa-chevron-right text-slate-500 text-xs"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-7 text-center text-[10px] font-medium text-slate-400 py-1">
+        <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
+      </div>
+      <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 px-1.5 pb-1.5"></div>
+      <div class="flex items-center justify-center gap-3 py-1.5 border-t border-slate-50 text-[10px] text-slate-400">
+        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Ganho</span>
+        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gasto</span>
+        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#3b82f6 50%,#ef4444 50%)"></span> Ambos</span>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm p-3">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <p class="text-[10px] text-slate-400">Dia selecionado</p>
+          <h3 id="selected-day-label" class="text-sm font-semibold capitalize">—</h3>
+        </div>
+        <button id="btn-add" class="bg-blue-600 active:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-sm">
+          <i class="fas fa-plus text-[10px]"></i> Adicionar
+        </button>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 mb-2">
+        <div class="bg-blue-50 rounded-lg p-1.5 text-center">
+          <p class="text-[9px] text-blue-600 font-medium">Ganhos</p>
+          <p id="day-income" class="text-[11px] font-bold text-blue-700">R$ 0,00</p>
+        </div>
+        <div class="bg-red-50 rounded-lg p-1.5 text-center">
+          <p class="text-[9px] text-red-600 font-medium">Gastos</p>
+          <p id="day-expense" class="text-[11px] font-bold text-red-700">R$ 0,00</p>
+        </div>
+        <div class="bg-slate-100 rounded-lg p-1.5 text-center">
+          <p class="text-[9px] text-slate-500 font-medium">Saldo</p>
+          <p id="day-balance" class="text-[11px] font-bold text-slate-700">R$ 0,00</p>
+        </div>
+      </div>
+      <div id="transactions-list" class="space-y-1.5 max-h-40 overflow-y-auto">
+        <p class="text-center text-slate-400 text-xs py-4">Toque em um dia no calendário</p>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm p-3">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold text-xs flex items-center gap-1.5">
+          <i class="fas fa-chart-pie text-blue-600 text-[11px]"></i> Resumo do mês
+        </h3>
+        <div class="flex gap-1 text-[10px]">
+          <button id="tab-expense" class="px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium">Gastos</button>
+          <button id="tab-income" class="px-2 py-0.5 rounded-md text-slate-400">Ganhos</button>
+        </div>
+      </div>
+      <div id="categories-summary" class="space-y-2 text-xs">
+        <p class="text-slate-400 text-center py-3 text-[10px]">Nenhum registro</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div id="modal-header" class="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0">
+        <h3 id="modal-title" class="text-white font-semibold text-sm">Novo Registro</h3>
+        <button id="close-modal" class="text-white/80 w-8 h-8 flex items-center justify-center">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="form" class="p-4 space-y-3.5">
+        <input type="hidden" id="item-id" />
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Tipo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="type-income" class="py-2.5 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-medium text-sm flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-down"></i> Ganho
+            </button>
+            <button type="button" id="type-expense" class="py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-up"></i> Gasto
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
+          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Descrição</label>
+          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Valor (R$)</label>
+          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Categoria</label>
+          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"></select>
+        </div>
+        <div class="flex gap-2.5 pt-1 pb-1">
+          <button type="button" id="cancel-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm active:bg-slate-50">Cancelar</button>
+          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-medium text-sm">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-lg transform translate-y-14 opacity-0 transition-all duration-300 z-50 text-xs flex items-center gap-2 pointer-events-none">
+    <i class="fas fa-check-circle text-blue-400"></i>
+    <span id="toast-msg">Salvo!</span>
+  </div>
+
+  <script>
+    const EXPENSE_CATS = {
+      'Alimentação': { icon: '🍽️', color: 'bg-orange-100 text-orange-700' },
+      'Transporte':  { icon: '🚗', color: 'bg-sky-100 text-sky-700' },
+      'Moradia':     { icon: '🏠', color: 'bg-purple-100 text-purple-700' },
+      'Lazer':       { icon: '🎮', color: 'bg-pink-100 text-pink-700' },
+      'Saúde':       { icon: '💊', color: 'bg-red-100 text-red-700' },
+      'Educação':    { icon: '📚', color: 'bg-indigo-100 text-indigo-700' },
+      'Outros':      { icon: '📦', color: 'bg-slate-100 text-slate-700' }
+    };
+    const INCOME_CATS = {
+      'Salário':       { icon: '💼', color: 'bg-blue-100 text-blue-700' },
+      'Freelance':     { icon: '💻', color: 'bg-cyan-100 text-cyan-700' },
+      'Investimentos': { icon: '📈', color: 'bg-sky-100 text-sky-700' },
+      'Presente':      { icon: '🎁', color: 'bg-amber-100 text-amber-700' },
+      'Reembolso':     { icon: '↩️', color: 'bg-lime-100 text-lime-700' },
+      'Outros':        { icon: '💰', color: 'bg-blue-100 text-blue-700' }
+    };
+
+    let currentDate = new Date();
+    let selectedDate = null;
+    let currentType = 'income';
+    let summaryTab = 'expense';
+    let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
+
+    function formatCurrency(value) {
+      return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    function toKey(y, m, d) {
+      return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+    function parseKey(key) {
+      var p = key.split('-').map(Number);
+      return new Date(p[0], p[1] - 1, p[2]);
+    }
+    function showToast(msg) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-14', 'opacity-0');
+      setTimeout(function() { toast.classList.add('translate-y-14', 'opacity-0'); }, 2000);
+    }
+    function saveData() {
+      localStorage.setItem('financeiro_calendar', JSON.stringify(data));
+    }
+    function fillCategories() {
+      var select = document.getElementById('item-category');
+      var cats = currentType === 'income' ? INCOME_CATS : EXPENSE_CATS;
+      select.innerHTML = '';
+      Object.keys(cats).forEach(function(name) {
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = cats[name].icon + '  ' + name;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderCalendar() {
+      var year = currentDate.getFullYear();
+      var month = currentDate.getMonth();
+      var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      document.getElementById('month-label').textContent = monthNames[month] + ' ' + year;
+      var firstDay = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var today = new Date();
+      var todayKey = toKey(today.getFullYear(), today.getMonth(), today.getDate());
+      var grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+      for (var i = 0; i < firstDay; i++) {
+        var empty = document.createElement('div');
+        empty.className = 'h-8';
+        grid.appendChild(empty);
+      }
+      for (var day = 1; day <= daysInMonth; day++) {
+        var key = toKey(year, month, day);
+        var items = data[key] || [];
+        var hasIncome = items.some(function(i) { return i.type === 'income'; });
+        var hasExpense = items.some(function(i) { return i.type === 'expense'; });
+        var isToday = key === todayKey;
+        var isSelected = key === selectedDate;
+        var cell = document.createElement('div');
+        cell.className = 'calendar-day flex flex-col items-center justify-center cursor-pointer font-medium rounded-lg';
+        cell.dataset.key = key;
+        if (isSelected) cell.className += ' bg-blue-600 text-white';
+        else if (isToday) cell.className += ' bg-blue-50 text-blue-700 ring-1 ring-blue-400';
+        else cell.className += ' text-slate-700 active:bg-slate-100';
+        var num = document.createElement('span');
+        num.textContent = day;
+        cell.appendChild(num);
+        if (hasIncome || hasExpense) {
+          var dot = document.createElement('span');
+          dot.className = 'day-dot';
+          if (hasIncome && hasExpense) {
+            dot.style.background = 'linear-gradient(90deg, #3b82f6 50%, #ef4444 50%)';
+            dot.style.width = '7px';
+          } else if (hasIncome) {
+            dot.style.background = '#3b82f6';
+          } else {
+            dot.style.background = '#ef4444';
+          }
+          cell.appendChild(dot);
+        }
+        cell.addEventListener('click', function() {
+          selectedDate = this.dataset.key;
+          renderCalendar();
+          renderDayPanel();
+        });
+        grid.appendChild(cell);
+      }
+      updateMonthTotals();
+      renderCategoriesSummary();
+    }
+
+    function renderDayPanel() {
+      if (!selectedDate) return;
+      var date = parseKey(selectedDate);
+      document.getElementById('selected-day-label').textContent = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      var items = data[selectedDate] || [];
+      var income = 0, expense = 0;
+      items.forEach(function(i) {
+        if (i.type === 'income') income += i.amount;
+        else expense += i.amount;
+      });
+      var balance = income - expense;
+      document.getElementById('day-income').textContent = formatCurrency(income);
+      document.getElementById('day-expense').textContent = formatCurrency(expense);
+      var balEl = document.getElementById('day-balance');
+      balEl.textContent = formatCurrency(balance);
+      balEl.className = 'text-[11px] font-bold ' + (balance >= 0 ? 'text-blue-700' : 'text-red-700');
+      var list = document.getElementById('transactions-list');
+      if (items.length === 0) {
+        list.innerHTML = '<p class="text-center text-slate-400 text-xs py-4">Nenhum registro neste dia</p>';
+        return;
+      }
+      items = items.slice().sort(function(a, b) { return b.timestamp - a.timestamp; });
+      list.innerHTML = '';
+      items.forEach(function(item) {
+        var cats = item.type === 'income' ? INCOME_CATS : EXPENSE_CATS;
+        var cat = cats[item.category] || cats['Outros'];
+        var isIncome = item.type === 'income';
+        var row = document.createElement('div');
+        row.className = 'expense-item flex items-center gap-2 p-2 rounded-lg bg-slate-50';
+        var iconBox = document.createElement('div');
+        iconBox.className = 'w-8 h-8 rounded-md flex items-center justify-center text-sm shrink-0 ' + cat.color;
+        iconBox.textContent = cat.icon;
+        var info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        var title = document.createElement('p');
+        title.className = 'font-medium text-slate-800 text-xs truncate';
+        title.textContent = item.desc;
+        var sub = document.createElement('p');
+        sub.className = 'text-[10px] text-slate-400';
+        sub.textContent = item.category + ' · ' + (isIncome ? 'Ganho' : 'Gasto');
+        info.appendChild(title);
+        info.appendChild(sub);
+        var right = document.createElement('div');
+        right.className = 'text-right shrink-0';
+        var val = document.createElement('p');
+        val.className = 'font-semibold text-xs ' + (isIncome ? 'text-blue-600' : 'text-red-600');
+        val.textContent = (isIncome ? '+ ' : '− ') + formatCurrency(item.amount);
+        var actions = document.createElement('div');
+        actions.className = 'flex gap-2.5 mt-0.5 justify-end';
+        var editBtn = document.createElement('button');
+        editBtn.className = 'text-slate-400 text-[10px]';
+        editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+        editBtn.addEventListener('click', function() { editItem(item.id); });
+        var delBtn = document.createElement('button');
+        delBtn.className = 'text-slate-400 text-[10px]';
+        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        delBtn.addEventListener('click', function() { deleteItem(item.id); });
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        right.appendChild(val);
+        right.appendChild(actions);
+        row.appendChild(iconBox);
+        row.appendChild(info);
+        row.appendChild(right);
+        list.appendChild(row);
+      });
+    }
+
+    function updateMonthTotals() {
+      var year = currentDate.getFullYear();
+      var month = currentDate.getMonth();
+      var prefix = year + '-' + String(month + 1).padStart(2, '0');
+      var income = 0, expense = 0;
+      Object.keys(data).forEach(function(key) {
+        if (key.indexOf(prefix) === 0) {
+          data[key].forEach(function(i) {
+            if (i.type === 'income') income += i.amount;
+            else expense += i.amount;
+          });
+        }
+      });
+      document.getElementById('month-income').textContent = formatCurrency(income);
+      document.getElementById('month-expense').textContent = formatCurrency(expense);
+      var bal = income - expense;
+      var balEl = document.getElementById('month-balance');
+      balEl.textContent = formatCurrency(bal);
+      balEl.className = 'text-xs font-bold ' + (bal >= 0 ? 'text-white' : 'text-red-200');
+    }
+
+    function renderCategoriesSummary() {
+      var year = currentDate.getFullYear();
+      var month = currentDate.getMonth();
+      var prefix = year + '-' + String(month + 1).padStart(2, '0');
+      var type = summaryTab;
+      var cats = type === 'income' ? INCOME_CATS : EXPENSE_CATS;
+      var totals = {};
+      Object.keys(data).forEach(function(key) {
+        if (key.indexOf(prefix) === 0) {
+          data[key].forEach(function(e) {
+            if (e.type === type) totals[e.category] = (totals[e.category] || 0) + e.amount;
+          });
+        }
+      });
+      var container = document.getElementById('categories-summary');
+      var entries = Object.keys(totals).map(function(k) { return [k, totals[k]]; }).sort(function(a, b) { return b[1] - a[1]; });
+      if (entries.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center py-3 text-[10px]">Nenhum ' + (type === 'income' ? 'ganho' : 'gasto') + ' neste mês</p>';
+        return;
+      }
+      var max = Math.max.apply(null, entries.map(function(e) { return e[1]; }));
+      var barColor = type === 'income' ? 'bg-blue-500' : 'bg-red-400';
+      container.innerHTML = '';
+      entries.forEach(function(entry) {
+        var cat = entry[0], val = entry[1];
+        var info = cats[cat] || cats['Outros'];
+        var pct = Math.round((val / max) * 100);
+        var div = document.createElement('div');
+        div.innerHTML = '<div class="flex justify-between mb-0.5 text-[11px]"><span>' + info.icon + ' ' + cat + '</span><span class="font-medium">' + formatCurrency(val) + '</span></div><div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ' + barColor + ' rounded-full" style="width:' + pct + '%"></div></div>';
+        container.appendChild(div);
+      });
+    }
+
+    var modal = document.getElementById('modal');
+    var form = document.getElementById('form');
+
+    function setType(type) {
+      currentType = type;
+      var incomeBtn = document.getElementById('type-income');
+      var expenseBtn = document.getElementById('type-expense');
+      var header = document.getElementById('modal-header');
+      var submit = document.getElementById('submit-btn');
+      if (type === 'income') {
+        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-medium text-sm flex items-center justify-center gap-2';
+        expenseBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
+        header.className = 'bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0';
+        submit.className = 'flex-1 py-2.5 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-medium text-sm';
+      } else {
+        expenseBtn.className = 'py-2.5 rounded-xl border-2 border-red-300 bg-red-50 text-red-600 font-medium text-sm flex items-center justify-center gap-2';
+        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
+        header.className = 'bg-red-500 px-4 py-3 flex items-center justify-between sticky top-0';
+        submit.className = 'flex-1 py-2.5 rounded-xl bg-red-500 active:bg-red-600 text-white font-medium text-sm';
+      }
+      fillCategories();
+    }
+
+    function openModal(editId) {
+      document.getElementById('item-id').value = editId || '';
+      document.getElementById('modal-title').textContent = editId ? 'Editar Registro' : 'Novo Registro';
+      var dateInput = document.getElementById('item-date');
+      if (editId) {
+        var found = null, foundKey = null;
+        Object.keys(data).forEach(function(key) {
+          data[key].forEach(function(item) {
+            if (item.id === editId) { found = item; foundKey = key; }
+          });
+        });
+        if (found) {
+          setType(found.type);
+          document.getElementById('item-desc').value = found.desc;
+          document.getElementById('item-amount').value = found.amount;
+          dateInput.value = foundKey;
+          fillCategories();
+          document.getElementById('item-category').value = found.category;
+        }
+      } else {
+        form.reset();
+        document.getElementById('item-id').value = '';
+        setType('income');
+        dateInput.value = selectedDate || toKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var id = document.getElementById('item-id').value;
+      var desc = document.getElementById('item-desc').value.trim();
+      var amount = parseFloat(document.getElementById('item-amount').value);
+      var category = document.getElementById('item-category').value;
+      var dateKey = document.getElementById('item-date').value;
+      if (!dateKey) { showToast('Escolha uma data'); return; }
+      if (!data[dateKey]) data[dateKey] = [];
+      if (id) {
+        Object.keys(data).forEach(function(key) {
+          data[key] = data[key].filter(function(item) {
+            if (item.id === id) return key === dateKey;
+            return true;
+          });
+          if (data[key].length === 0) delete data[key];
+        });
+        var existing = (data[dateKey] || []).find(function(i) { return i.id === id; });
+        if (existing) {
+          existing.desc = desc; existing.amount = amount; existing.category = category; existing.type = currentType;
+        } else {
+          if (!data[dateKey]) data[dateKey] = [];
+          data[dateKey].push({ id: id, desc: desc, amount: amount, category: category, type: currentType, timestamp: Date.now() });
+        }
+        showToast('Registro atualizado!');
+      } else {
+        data[dateKey].push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          desc: desc, amount: amount, category: category, type: currentType, timestamp: Date.now()
+        });
+        showToast(currentType === 'income' ? 'Ganho adicionado!' : 'Gasto adicionado!');
+      }
+      selectedDate = dateKey;
+      var d = parseKey(dateKey);
+      currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
+      saveData();
+      closeModal();
+      renderCalendar();
+      renderDayPanel();
+    });
+
+    function editItem(id) { openModal(id); }
+    function deleteItem(id) {
+      if (!confirm('Excluir este registro?')) return;
+      Object.keys(data).forEach(function(key) {
+        data[key] = data[key].filter(function(e) { return e.id !== id; });
+        if (data[key].length === 0) delete data[key];
+      });
+      saveData();
+      renderCalendar();
+      renderDayPanel();
+      showToast('Registro excluído');
+    }
+
+    document.getElementById('prev-month').addEventListener('click', function() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+    document.getElementById('next-month').addEventListener('click', function() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+    document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
+    document.getElementById('close-modal').addEventListener('click', closeModal);
+    document.getElementById('cancel-modal').addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+    document.getElementById('type-income').addEventListener('click', function() { setType('income'); });
+    document.getElementById('type-expense').addEventListener('click', function() { setType('expense'); });
+    document.getElementById('tab-expense').addEventListener('click', function() {
+      summaryTab = 'expense';
+      this.className = 'px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium';
+      document.getElementById('tab-income').className = 'px-2 py-0.5 rounded-md text-slate-400';
+      renderCategoriesSummary();
+    });
+    document.getElementById('tab-income').addEventListener('click', function() {
+      summaryTab = 'income';
+      this.className = 'px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 font-medium';
+      document.getElementById('tab-expense').className = 'px-2 py-0.5 rounded-md text-slate-400';
+      renderCategoriesSummary();
+    });
+
+    var today = new Date();
+    selectedDate = toKey(today.getFullYear(), today.getMonth(), today.getDate());
+    renderCalendar();
+    renderDayPanel();
+  </script>
+</body>
+</html>

@@ -121,7 +121,7 @@
             <button id="tab-income" class="px-2 py-0.5 rounded-md text-slate-400">Ganhos</button>
           </div>
         </div>
-        <div id="categories-summary" class="space-y-2 text-xs">
+        <div id="categories-summary" class="space-y-2 text-xs max-h-96 overflow-y-auto pr-1">
           <p class="text-slate-400 text-center py-3 text-[10px]">Nenhum registro</p>
         </div>
       </section>
@@ -213,7 +213,6 @@
     let selectedDate = null;
     let currentType = 'income';
     let summaryTab = 'expense';
-    let expandedCategory = null;
     let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
 
     function formatCurrency(v) {
@@ -264,7 +263,8 @@
       document.getElementById('view-historico').classList.remove('hidden');
       renderHistory();
     });
-function renderCalendar() {
+
+    function renderCalendar() {
       var year = currentDate.getFullYear();
       var month = currentDate.getMonth();
       var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -405,7 +405,8 @@ function renderCalendar() {
       balEl.textContent = formatCurrency(bal);
       balEl.className = 'text-xs font-bold ' + (bal >= 0 ? 'text-white' : 'text-red-200');
     }
-function renderCategoriesSummary() {
+
+    function renderCategoriesSummary() {
       var year = currentDate.getFullYear();
       var month = currentDate.getMonth();
       var prefix = year + '-' + String(month + 1).padStart(2, '0');
@@ -443,51 +444,40 @@ function renderCategoriesSummary() {
         var cat = entry[0], val = entry[1], items = entry[2];
         var info = cats[cat] || cats['Outros'];
         var pct = Math.round((val / max) * 100);
-        var isOpen = expandedCategory === cat;
 
         items.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
 
         var wrap = document.createElement('div');
-        wrap.className = 'rounded-lg ' + (isOpen ? 'bg-slate-50' : '');
+        wrap.className = 'rounded-lg bg-slate-50 p-2';
 
         var header = document.createElement('div');
-        header.className = 'flex justify-between items-center mb-0.5 text-[11px] cursor-pointer py-1';
+        header.className = 'flex justify-between items-center mb-1 text-[11px]';
         header.innerHTML =
-          '<span class="flex items-center gap-1">' +
-            '<i class="fas fa-chevron-' + (isOpen ? 'down' : 'right') + ' text-[9px] text-slate-400 w-3"></i>' +
-            info.icon + ' ' + cat +
-          '</span>' +
-          '<span class="font-medium">' + formatCurrency(val) + '</span>';
-
-        header.addEventListener('click', function() {
-          expandedCategory = (expandedCategory === cat) ? null : cat;
-          renderCategoriesSummary();
-        });
+          '<span class="flex items-center gap-1 font-medium">' + info.icon + ' ' + cat + '</span>' +
+          '<span class="font-semibold">' + formatCurrency(val) + '</span>';
 
         var bar = document.createElement('div');
-        bar.className = 'h-1 bg-slate-100 rounded-full overflow-hidden mb-1';
+        bar.className = 'h-1 bg-slate-200 rounded-full overflow-hidden mb-1.5';
         bar.innerHTML = '<div class="h-full ' + barColor + ' rounded-full" style="width:' + pct + '%"></div>';
 
         wrap.appendChild(header);
         wrap.appendChild(bar);
 
-        if (isOpen) {
-          var detail = document.createElement('div');
-          detail.className = 'pl-4 pb-2 space-y-1.5';
-          items.forEach(function(it) {
-            var d = parseKey(it.date);
-            var dayLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            var line = document.createElement('div');
-            line.className = 'flex items-center justify-between text-[10px] text-slate-600';
-            line.innerHTML =
-              '<span class="truncate flex-1 mr-2"><span class="text-slate-400">' + dayLabel + '</span> · ' + it.desc + '</span>' +
-              '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-blue-600' : 'text-red-500') + '">' +
-                (type === 'income' ? '+' : '−') + ' ' + formatCurrency(it.amount) +
-              '</span>';
-            detail.appendChild(line);
-          });
-          wrap.appendChild(detail);
-        }
+        var detail = document.createElement('div');
+        detail.className = 'space-y-1';
+        items.forEach(function(it) {
+          var d = parseKey(it.date);
+          var dayLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          var line = document.createElement('div');
+          line.className = 'flex items-center justify-between text-[10px] text-slate-600';
+          line.innerHTML =
+            '<span class="truncate flex-1 mr-2"><span class="text-slate-400 font-medium">' + dayLabel + '</span> · ' + it.desc + '</span>' +
+            '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-blue-600' : 'text-red-500') + '">' +
+              (type === 'income' ? '+' : '−') + ' ' + formatCurrency(it.amount) +
+            '</span>';
+          detail.appendChild(line);
+        });
+        wrap.appendChild(detail);
 
         container.appendChild(wrap);
       });
@@ -671,14 +661,12 @@ function renderCategoriesSummary() {
     document.getElementById('type-expense').addEventListener('click', function() { setType('expense'); });
     document.getElementById('tab-expense').addEventListener('click', function() {
       summaryTab = 'expense';
-      expandedCategory = null;
       this.className = 'px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium';
       document.getElementById('tab-income').className = 'px-2 py-0.5 rounded-md text-slate-400';
       renderCategoriesSummary();
     });
     document.getElementById('tab-income').addEventListener('click', function() {
       summaryTab = 'income';
-      expandedCategory = null;
       this.className = 'px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 font-medium';
       document.getElementById('tab-expense').className = 'px-2 py-0.5 rounded-md text-slate-400';
       renderCategoriesSummary();
@@ -688,6 +676,39 @@ function renderCategoriesSummary() {
     selectedDate = toKey(today.getFullYear(), today.getMonth(), today.getDate());
     renderCalendar();
     renderDayPanel();
+
+    // === Botão voltar: trata navegação interna e confirma saída ===
+    let backCount = 0;
+    let backTimer = null;
+
+    history.pushState({ guard: true }, '');
+
+    window.addEventListener('popstate', function(e) {
+      // Fecha modal se estiver aberto
+      if (!modal.classList.contains('hidden')) {
+        closeModal();
+        history.pushState({ guard: true }, '');
+        backCount = 0;
+        clearTimeout(backTimer);
+        return;
+      }
+      // Volta da aba Histórico para o Calendário
+      if (!document.getElementById('view-historico').classList.contains('hidden')) {
+        document.getElementById('tab-calendario').click();
+        history.pushState({ guard: true }, '');
+        backCount = 0;
+        clearTimeout(backTimer);
+        return;
+      }
+      // Confirmação de saída (2 toques)
+      backCount++;
+      if (backCount >= 2) {
+        return; // permite sair
+      }
+      showToast('Pressione voltar novamente para sair');
+      clearTimeout(backTimer);
+      backTimer = setTimeout(function() { backCount = 0; }, 2000);
+    });
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function() {});

@@ -55,13 +55,11 @@
 
   <main class="max-w-lg mx-auto px-2.5 py-2.5 space-y-2.5 pb-16">
 
-    <!-- Abas -->
     <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm">
       <button id="tab-calendario" class="tab-btn active flex-1 py-2 rounded-lg text-xs font-medium transition">Calendário</button>
       <button id="tab-historico" class="tab-btn flex-1 py-2 rounded-lg text-xs font-medium text-slate-500 transition">Histórico</button>
     </div>
 
-    <!-- VIEW CALENDÁRIO -->
     <div id="view-calendario">
       <section class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-2 py-2 border-b border-slate-100">
@@ -129,7 +127,6 @@
       </section>
     </div>
 
-    <!-- VIEW HISTÓRICO -->
     <div id="view-historico" class="hidden">
       <section class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="grid grid-cols-4 gap-1 px-3 py-2.5 bg-slate-50 border-b border-slate-100 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
@@ -216,6 +213,7 @@
     let selectedDate = null;
     let currentType = 'income';
     let summaryTab = 'expense';
+    let expandedCategory = null;
     let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
 
     function formatCurrency(v) {
@@ -266,8 +264,7 @@
       document.getElementById('view-historico').classList.remove('hidden');
       renderHistory();
     });
-
-    function renderCalendar() {
+function renderCalendar() {
       var year = currentDate.getFullYear();
       var month = currentDate.getMonth();
       var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -408,37 +405,91 @@
       balEl.textContent = formatCurrency(bal);
       balEl.className = 'text-xs font-bold ' + (bal >= 0 ? 'text-white' : 'text-red-200');
     }
-
-    function renderCategoriesSummary() {
+function renderCategoriesSummary() {
       var year = currentDate.getFullYear();
       var month = currentDate.getMonth();
       var prefix = year + '-' + String(month + 1).padStart(2, '0');
       var type = summaryTab;
       var cats = type === 'income' ? INCOME_CATS : EXPENSE_CATS;
-      var totals = {};
+
+      var byCat = {};
       Object.keys(data).forEach(function(key) {
         if (key.indexOf(prefix) === 0) {
           data[key].forEach(function(e) {
-            if (e.type === type) totals[e.category] = (totals[e.category] || 0) + e.amount;
+            if (e.type === type) {
+              if (!byCat[e.category]) byCat[e.category] = { total: 0, items: [] };
+              byCat[e.category].total += e.amount;
+              byCat[e.category].items.push({ date: key, desc: e.desc, amount: e.amount, id: e.id });
+            }
           });
         }
       });
+
       var container = document.getElementById('categories-summary');
-      var entries = Object.keys(totals).map(function(k) { return [k, totals[k]]; }).sort(function(a, b) { return b[1] - a[1]; });
+      var entries = Object.keys(byCat).map(function(k) {
+        return [k, byCat[k].total, byCat[k].items];
+      }).sort(function(a, b) { return b[1] - a[1]; });
+
       if (entries.length === 0) {
         container.innerHTML = '<p class="text-slate-400 text-center py-3 text-[10px]">Nenhum ' + (type === 'income' ? 'ganho' : 'gasto') + ' neste mês</p>';
         return;
       }
+
       var max = Math.max.apply(null, entries.map(function(e) { return e[1]; }));
       var barColor = type === 'income' ? 'bg-blue-500' : 'bg-red-400';
       container.innerHTML = '';
+
       entries.forEach(function(entry) {
-        var cat = entry[0], val = entry[1];
+        var cat = entry[0], val = entry[1], items = entry[2];
         var info = cats[cat] || cats['Outros'];
         var pct = Math.round((val / max) * 100);
-        var div = document.createElement('div');
-        div.innerHTML = '<div class="flex justify-between mb-0.5 text-[11px]"><span>' + info.icon + ' ' + cat + '</span><span class="font-medium">' + formatCurrency(val) + '</span></div><div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ' + barColor + ' rounded-full" style="width:' + pct + '%"></div></div>';
-        container.appendChild(div);
+        var isOpen = expandedCategory === cat;
+
+        items.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+
+        var wrap = document.createElement('div');
+        wrap.className = 'rounded-lg ' + (isOpen ? 'bg-slate-50' : '');
+
+        var header = document.createElement('div');
+        header.className = 'flex justify-between items-center mb-0.5 text-[11px] cursor-pointer py-1';
+        header.innerHTML =
+          '<span class="flex items-center gap-1">' +
+            '<i class="fas fa-chevron-' + (isOpen ? 'down' : 'right') + ' text-[9px] text-slate-400 w-3"></i>' +
+            info.icon + ' ' + cat +
+          '</span>' +
+          '<span class="font-medium">' + formatCurrency(val) + '</span>';
+
+        header.addEventListener('click', function() {
+          expandedCategory = (expandedCategory === cat) ? null : cat;
+          renderCategoriesSummary();
+        });
+
+        var bar = document.createElement('div');
+        bar.className = 'h-1 bg-slate-100 rounded-full overflow-hidden mb-1';
+        bar.innerHTML = '<div class="h-full ' + barColor + ' rounded-full" style="width:' + pct + '%"></div>';
+
+        wrap.appendChild(header);
+        wrap.appendChild(bar);
+
+        if (isOpen) {
+          var detail = document.createElement('div');
+          detail.className = 'pl-4 pb-2 space-y-1.5';
+          items.forEach(function(it) {
+            var d = parseKey(it.date);
+            var dayLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            var line = document.createElement('div');
+            line.className = 'flex items-center justify-between text-[10px] text-slate-600';
+            line.innerHTML =
+              '<span class="truncate flex-1 mr-2"><span class="text-slate-400">' + dayLabel + '</span> · ' + it.desc + '</span>' +
+              '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-blue-600' : 'text-red-500') + '">' +
+                (type === 'income' ? '+' : '−') + ' ' + formatCurrency(it.amount) +
+              '</span>';
+            detail.appendChild(line);
+          });
+          wrap.appendChild(detail);
+        }
+
+        container.appendChild(wrap);
       });
     }
 
@@ -620,12 +671,14 @@
     document.getElementById('type-expense').addEventListener('click', function() { setType('expense'); });
     document.getElementById('tab-expense').addEventListener('click', function() {
       summaryTab = 'expense';
+      expandedCategory = null;
       this.className = 'px-2 py-0.5 rounded-md bg-red-100 text-red-700 font-medium';
       document.getElementById('tab-income').className = 'px-2 py-0.5 rounded-md text-slate-400';
       renderCategoriesSummary();
     });
     document.getElementById('tab-income').addEventListener('click', function() {
       summaryTab = 'income';
+      expandedCategory = null;
       this.className = 'px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 font-medium';
       document.getElementById('tab-expense').className = 'px-2 py-0.5 rounded-md text-slate-400';
       renderCategoriesSummary();

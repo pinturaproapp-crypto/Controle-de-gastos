@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Controle Financeiro</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Financeiro">
@@ -37,31 +37,31 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
     .modal-backdrop { backdrop-filter: blur(6px); }
     select, input { font-size: 16px !important; }
-    .tab-btn.active { background: #2563eb; color: white; }
+    .tab-btn.active { background: #000000; color: white; }
   </style>
 </head>
 <body class="min-h-screen text-slate-800">
 
-  <header class="bg-blue-600 text-white sticky top-0 z-40 shadow">
+  <header class="bg-black text-white sticky top-0 z-40 shadow">
     <div class="max-w-lg mx-auto px-3 pt-2.5 pb-2">
       <div class="flex items-center gap-2 mb-1.5">
         <div class="bg-white/20 p-1 rounded-lg"><i class="fas fa-wallet text-xs"></i></div>
         <div>
           <h1 class="text-sm font-bold leading-tight">Controle Financeiro</h1>
-          <p class="text-blue-100 text-[9px]">Ganhos e gastos</p>
+          <p class="text-gray-300 text-[9px]">Ganhos e gastos</p>
         </div>
       </div>
       <div class="grid grid-cols-3 gap-1 text-center">
         <div class="bg-white/15 rounded-md py-1 px-1">
-          <p class="text-[8px] text-blue-100">Ganhos</p>
+          <p class="text-[8px] text-gray-300">Ganhos</p>
           <p id="month-income" class="text-[11px] font-bold">R$ 0,00</p>
         </div>
         <div class="bg-white/15 rounded-md py-1 px-1">
-          <p class="text-[8px] text-blue-100">Gastos</p>
+          <p class="text-[8px] text-gray-300">Gastos</p>
           <p id="month-expense" class="text-[11px] font-bold">R$ 0,00</p>
         </div>
         <div class="bg-white/25 rounded-md py-1 px-1">
-          <p class="text-[8px] text-blue-100">Saldo</p>
+          <p class="text-[8px] text-gray-300">Saldo</p>
           <p id="month-balance" class="text-[11px] font-bold">R$ 0,00</p>
         </div>
       </div>
@@ -91,9 +91,9 @@
         </div>
         <div id="calendar-grid" class="grid grid-cols-7 gap-1 px-1 pb-1"></div>
         <div class="flex items-center justify-center gap-2 py-1 border-t border-slate-50 text-[9px] text-slate-400 mt-1">
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Ganho</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-black"></span> Ganho</span>
           <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gasto</span>
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#3b82f6 50%,#ef4444 50%)"></span> Ambos</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#000000 50%,#ef4444 50%)"></span> Ambos</span>
         </div>
       </section>
 
@@ -103,14 +103,14 @@
             <p class="text-[9px] text-slate-400">Dia selecionado</p>
             <h3 id="selected-day-label" class="text-xs font-semibold capitalize">—</h3>
           </div>
-          <button id="btn-add" class="bg-blue-600 active:bg-blue-700 text-white px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm">
+          <button id="btn-add" class="bg-black active:bg-gray-800 text-white px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm">
             <i class="fas fa-plus text-[9px]"></i> Adicionar
           </button>
         </div>
         <div class="grid grid-cols-3 gap-1 mb-1.5">
-          <div class="bg-blue-50 rounded-md p-1 text-center">
-            <p class="text-[8px] text-blue-600 font-medium">Ganhos</p>
-            <p id="day-income" class="text-[10px] font-bold text-blue-700">R$ 0,00</p>
+          <div class="bg-gray-100 rounded-md p-1 text-center">
+            <p class="text-[8px] text-black font-medium">Ganhos</p>
+            <p id="day-income" class="text-[10px] font-bold text-black">R$ 0,00</p>
           </div>
           <div class="bg-red-50 rounded-md p-1 text-center">
             <p class="text-[8px] text-red-600 font-medium">Gastos</p>
@@ -129,7 +129,7 @@
       <section class="bg-white rounded-lg shadow-sm p-2.5 mt-2">
         <div class="flex items-center justify-between mb-1.5">
           <h3 class="font-semibold text-[11px] flex items-center gap-1">
-            <i class="fas fa-chart-pie text-blue-600 text-[10px]"></i> Resumo do mês
+            <i class="fas fa-chart-pie text-black text-[10px]"></i> Resumo do mês
           </h3>
           <div class="flex gap-0.5 text-[9px]">
             <button id="tab-expense" class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">Gastos</button>
@@ -146,7 +146,7 @@
       <section class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="grid grid-cols-4 gap-1 px-2.5 py-2 bg-slate-50 border-b border-slate-100 text-[9px] font-semibold text-slate-500 uppercase tracking-wide">
           <div>Mês</div>
-          <div class="text-right text-blue-600">Ganhos</div>
+          <div class="text-right text-black">Ganhos</div>
           <div class="text-right text-red-500">Gastos</div>
           <div class="text-right">Saldo</div>
         </div>
@@ -159,7 +159,7 @@
 
   <div id="modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
     <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-      <div id="modal-header" class="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0">
+      <div id="modal-header" class="bg-black px-4 py-3 flex items-center justify-between sticky top-0">
         <h3 id="modal-title" class="text-white font-semibold text-sm">Novo Registro</h3>
         <button id="close-modal" class="text-white/80 w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
       </div>
@@ -168,7 +168,7 @@
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Tipo</label>
           <div class="grid grid-cols-2 gap-2">
-            <button type="button" id="type-income" class="py-2.5 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-medium text-sm flex items-center justify-center gap-2">
+            <button type="button" id="type-income" class="py-2.5 rounded-xl border-2 border-black bg-gray-100 text-black font-medium text-sm flex items-center justify-center gap-2">
               <i class="fas fa-arrow-down"></i> Ganho
             </button>
             <button type="button" id="type-expense" class="py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2">
@@ -178,30 +178,30 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
-          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Descrição</label>
-          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Valor (R$)</label>
-          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Categoria</label>
-          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"></select>
+          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black bg-white appearance-none"></select>
         </div>
         <div class="flex gap-2.5 pt-1 pb-1">
           <button type="button" id="cancel-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancelar</button>
-          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-medium text-sm">Salvar</button>
+          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm">Salvar</button>
         </div>
       </form>
     </div>
   </div>
 
   <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-lg transform translate-y-14 opacity-0 transition-all duration-300 z-50 text-xs flex items-center gap-2 pointer-events-none">
-    <i class="fas fa-check-circle text-blue-400"></i>
+    <i class="fas fa-check-circle text-gray-300"></i>
     <span id="toast-msg">Salvo!</span>
   </div>
 
@@ -216,12 +216,12 @@
       'Outros':      { icon: '📦', color: 'bg-slate-100 text-slate-700' }
     };
     const INCOME_CATS = {
-      'Salário':       { icon: '💼', color: 'bg-blue-100 text-blue-700' },
+      'Salário':       { icon: '💼', color: 'bg-gray-200 text-black' },
       'Freelance':     { icon: '💻', color: 'bg-cyan-100 text-cyan-700' },
       'Investimentos': { icon: '📈', color: 'bg-sky-100 text-sky-700' },
       'Presente':      { icon: '🎁', color: 'bg-amber-100 text-amber-700' },
       'Reembolso':     { icon: '↩️', color: 'bg-lime-100 text-lime-700' },
-      'Outros':        { icon: '💰', color: 'bg-blue-100 text-blue-700' }
+      'Outros':        { icon: '💰', color: 'bg-gray-200 text-black' }
     };
 
     let currentDate = new Date();
@@ -307,8 +307,8 @@
         var cell = document.createElement('div');
         cell.className = 'calendar-day cursor-pointer font-medium';
         cell.dataset.key = key;
-        if (isSelected) cell.className += ' bg-blue-600 text-white shadow-sm';
-        else if (isToday) cell.className += ' bg-blue-50 text-blue-700 ring-1 ring-blue-400';
+        if (isSelected) cell.className += ' bg-black text-white shadow-sm';
+        else if (isToday) cell.className += ' bg-gray-100 text-black ring-1 ring-black';
         else cell.className += ' text-slate-700 active:bg-slate-100';
         var num = document.createElement('span');
         num.textContent = day;
@@ -317,9 +317,9 @@
           var dot = document.createElement('span');
           dot.className = 'day-dot';
           if (hasIncome && hasExpense) {
-            dot.style.background = 'linear-gradient(90deg, #3b82f6 50%, #ef4444 50%)';
+            dot.style.background = 'linear-gradient(90deg, #000000 50%, #ef4444 50%)';
             dot.style.width = '6px';
-          } else if (hasIncome) dot.style.background = '#3b82f6';
+          } else if (hasIncome) dot.style.background = '#000000';
           else dot.style.background = '#ef4444';
           cell.appendChild(dot);
         }
@@ -349,7 +349,7 @@
       document.getElementById('day-expense').textContent = formatCurrency(expense);
       var balEl = document.getElementById('day-balance');
       balEl.textContent = formatCurrency(balance);
-      balEl.className = 'text-[10px] font-bold ' + (balance >= 0 ? 'text-blue-700' : 'text-red-700');
+      balEl.className = 'text-[10px] font-bold ' + (balance >= 0 ? 'text-black' : 'text-red-700');
       var list = document.getElementById('transactions-list');
       if (items.length === 0) {
         list.innerHTML = '<p class="text-center text-slate-400 text-[11px] py-3">Nenhum registro neste dia</p>';
@@ -379,7 +379,7 @@
         var right = document.createElement('div');
         right.className = 'text-right shrink-0';
         var val = document.createElement('p');
-        val.className = 'font-semibold text-[11px] ' + (isIncome ? 'text-blue-600' : 'text-red-600');
+        val.className = 'font-semibold text-[11px] ' + (isIncome ? 'text-black' : 'text-red-600');
         val.textContent = (isIncome ? '+ ' : '− ') + formatCurrency(item.amount);
         var actions = document.createElement('div');
         actions.className = 'flex gap-2 mt-0.5 justify-end';
@@ -454,7 +454,7 @@
       }
 
       var max = Math.max.apply(null, entries.map(function(e) { return e[1]; }));
-      var barColor = type === 'income' ? 'bg-blue-500' : 'bg-red-400';
+      var barColor = type === 'income' ? 'bg-black' : 'bg-red-400';
       container.innerHTML = '';
 
       entries.forEach(function(entry) {
@@ -466,14 +466,14 @@
         items.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
 
         var wrap = document.createElement('div');
-        wrap.className = 'rounded-md border ' + (isOpen ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 bg-white') + ' overflow-hidden mb-1';
+        wrap.className = 'rounded-md border ' + (isOpen ? 'border-gray-300 bg-gray-100/50' : 'border-slate-100 bg-white') + ' overflow-hidden mb-1';
 
         var header = document.createElement('div');
         header.className = 'flex justify-between items-center p-2 cursor-pointer select-none active:bg-slate-50 transition-colors';
         
         // Indicador claro de abrir/fechar
-        var arrowIcon = isOpen ? 'fa-chevron-up text-blue-500' : 'fa-chevron-down text-slate-400';
-        var actionText = isOpen ? '<span class="text-[9px] text-blue-500 ml-1 font-semibold">Fechar</span>' : '';
+        var arrowIcon = isOpen ? 'fa-chevron-up text-black' : 'fa-chevron-down text-slate-400';
+        var actionText = isOpen ? '<span class="text-[9px] text-black ml-1 font-semibold">Fechar</span>' : '';
 
         header.innerHTML =
           '<div class="flex items-center gap-1.5 font-medium text-slate-700">' +
@@ -508,7 +508,7 @@
             line.className = 'flex items-center justify-between text-[10px] text-slate-600';
             line.innerHTML =
               '<span class="truncate flex-1 mr-2"><span class="text-slate-400 font-medium">' + dayLabel + '</span> · ' + it.desc + '</span>' +
-              '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-blue-600' : 'text-red-500') + '">' +
+              '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-black' : 'text-red-500') + '">' +
                 (type === 'income' ? '+' : '−') + ' ' + formatCurrency(it.amount) +
               '</span>';
             detail.appendChild(line);
@@ -559,15 +559,15 @@
 
         var header = document.createElement('div');
         header.className = 'grid grid-cols-4 gap-1 px-2.5 py-2.5 items-center text-[11px] cursor-pointer ' +
-          (isCurrent ? 'bg-blue-50' : 'active:bg-slate-50');
+          (isCurrent ? 'bg-gray-100' : 'active:bg-slate-50');
         header.innerHTML =
-          '<div class="font-semibold flex items-center gap-1 ' + (isCurrent ? 'text-blue-700' : 'text-slate-700') + '">' +
+          '<div class="font-semibold flex items-center gap-1 ' + (isCurrent ? 'text-black' : 'text-slate-700') + '">' +
             '<i class="fas fa-chevron-' + (isExpanded ? 'down' : 'right') + ' text-[8px] text-slate-400" style="width:8px"></i>' +
             label +
           '</div>' +
-          '<div class="text-right text-blue-600 font-medium">' + formatCurrency(inc) + '</div>' +
+          '<div class="text-right text-black font-medium">' + formatCurrency(inc) + '</div>' +
           '<div class="text-right text-red-500 font-medium">' + formatCurrency(exp) + '</div>' +
-          '<div class="text-right font-bold ' + (bal >= 0 ? 'text-blue-700' : 'text-red-600') + '">' + formatCurrency(bal) + '</div>';
+          '<div class="text-right font-bold ' + (bal >= 0 ? 'text-black' : 'text-red-600') + '">' + formatCurrency(bal) + '</div>';
 
         header.addEventListener('click', function() {
           expandedMonths[prefix] = !expandedMonths[prefix];
@@ -599,14 +599,14 @@
                 '<span class="shrink-0">' + cat.icon + '</span>' +
                 '<span class="truncate text-slate-700">' + it.desc + '</span>' +
               '</span>' +
-              '<span class="font-semibold shrink-0 ' + (isIncome ? 'text-blue-600' : 'text-red-500') + '">' +
+              '<span class="font-semibold shrink-0 ' + (isIncome ? 'text-black' : 'text-red-500') + '">' +
                 (isIncome ? '+ ' : '− ') + formatCurrency(it.amount) +
               '</span>';
             detail.appendChild(line);
           });
 
           var navBtn = document.createElement('button');
-          navBtn.className = 'w-full text-blue-600 text-[10px] font-medium py-1.5 mt-1 border-t border-slate-200 flex items-center justify-center gap-1';
+          navBtn.className = 'w-full text-black text-[10px] font-medium py-1.5 mt-1 border-t border-slate-200 flex items-center justify-center gap-1';
           navBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Ver este mês no calendário';
           navBtn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -639,10 +639,10 @@
       var header = document.getElementById('modal-header');
       var submit = document.getElementById('submit-btn');
       if (type === 'income') {
-        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-medium text-sm flex items-center justify-center gap-2';
+        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-black bg-gray-100 text-black font-medium text-sm flex items-center justify-center gap-2';
         expenseBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
-        header.className = 'bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0';
-        submit.className = 'flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-medium text-sm';
+        header.className = 'bg-black px-4 py-3 flex items-center justify-between sticky top-0';
+        submit.className = 'flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm';
       } else {
         expenseBtn.className = 'py-2.5 rounded-xl border-2 border-red-300 bg-red-50 text-red-600 font-medium text-sm flex items-center justify-center gap-2';
         incomeBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
@@ -765,7 +765,7 @@
     document.getElementById('tab-income').addEventListener('click', function() {
       summaryTab = 'income';
       expandedCategory = null;
-      this.className = 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium';
+      this.className = 'px-1.5 py-0.5 rounded bg-gray-200 text-black font-medium';
       document.getElementById('tab-expense').className = 'px-1.5 py-0.5 rounded text-slate-400';
       renderCategoriesSummary();
     });

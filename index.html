@@ -17,7 +17,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background: #f1f5f9; }
     
-    /* CALENDÁRIO COMPACTO */
     .calendar-day { 
       height: 36px !important; 
       min-height: 36px !important; 
@@ -64,6 +63,15 @@
           <p class="text-[8px] text-gray-300">Saldo</p>
           <p id="month-balance" class="text-[11px] font-bold">R$ 0,00</p>
         </div>
+      </div>
+      <div class="mt-1.5 bg-white/15 rounded-md py-1.5 px-2 flex items-center justify-between">
+        <div>
+          <p class="text-[8px] text-gray-300">Saldo Inicial</p>
+          <p id="account-balance" class="text-[13px] font-bold">R$ 0,00</p>
+        </div>
+        <button id="btn-edit-balance" class="bg-white/20 active:bg-white/30 px-2 py-1 rounded-md text-[10px] font-medium">
+          <i class="fas fa-pen text-[9px]"></i> Editar
+        </button>
       </div>
     </div>
   </header>
@@ -157,6 +165,7 @@
     </div>
   </main>
 
+  <!-- MODAL ADICIONAR/EDITAR REGISTRO -->
   <div id="modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
     <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div id="modal-header" class="bg-black px-4 py-3 flex items-center justify-between sticky top-0">
@@ -200,6 +209,26 @@
     </div>
   </div>
 
+  <!-- MODAL EDITAR SALDO INICIAL -->
+  <div id="balance-modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="bg-black px-4 py-3 flex items-center justify-between sticky top-0">
+        <h3 class="text-white font-semibold text-sm">Saldo Inicial</h3>
+        <button id="close-balance-modal" class="text-white/80 w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="balance-form" class="p-4 space-y-3.5">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Quanto você tem na conta hoje? (R$)</label>
+          <input type="number" id="balance-amount" required min="0" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
+        </div>
+        <div class="flex gap-2.5 pt-1 pb-1">
+          <button type="button" id="cancel-balance-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancelar</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-lg transform translate-y-14 opacity-0 transition-all duration-300 z-50 text-xs flex items-center gap-2 pointer-events-none">
     <i class="fas fa-check-circle text-gray-300"></i>
     <span id="toast-msg">Salvo!</span>
@@ -231,6 +260,7 @@
     let expandedCategory = null;
     let expandedMonths = {};
     let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
+    let accountBalance = parseFloat(localStorage.getItem('financeiro_balance') || '0');
 
     function formatCurrency(v) {
       return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -251,6 +281,9 @@
     function saveData() {
       localStorage.setItem('financeiro_calendar', JSON.stringify(data));
     }
+    function renderAccountBalance() {
+      document.getElementById('account-balance').textContent = formatCurrency(accountBalance);
+    }
     function fillCategories() {
       var select = document.getElementById('item-category');
       var cats = currentType === 'income' ? INCOME_CATS : EXPENSE_CATS;
@@ -262,6 +295,37 @@
         select.appendChild(opt);
       });
     }
+
+    // --- CONTROLE DO MODAL DE SALDO ---
+    var balanceModal = document.getElementById('balance-modal');
+    
+    document.getElementById('btn-edit-balance').addEventListener('click', function() {
+      document.getElementById('balance-amount').value = accountBalance > 0 ? accountBalance.toFixed(2) : '';
+      balanceModal.classList.remove('hidden');
+      balanceModal.classList.add('flex');
+    });
+
+    function closeBalanceModal() {
+      balanceModal.classList.add('hidden');
+      balanceModal.classList.remove('flex');
+    }
+
+    document.getElementById('close-balance-modal').addEventListener('click', closeBalanceModal);
+    document.getElementById('cancel-balance-modal').addEventListener('click', closeBalanceModal);
+    balanceModal.addEventListener('click', function(e) { if (e.target === balanceModal) closeBalanceModal(); });
+
+    document.getElementById('balance-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var n = parseFloat(document.getElementById('balance-amount').value);
+      if (isNaN(n) || n < 0) { showToast('Valor inválido'); return; }
+      accountBalance = n;
+      localStorage.setItem('financeiro_balance', accountBalance);
+      renderAccountBalance();
+      updateMonthTotals();
+      closeBalanceModal();
+      showToast('Saldo inicial atualizado!');
+    });
+    // ----------------------------------
 
     document.getElementById('tab-calendario').addEventListener('click', function() {
       this.classList.add('active');
@@ -417,7 +481,9 @@
       });
       document.getElementById('month-income').textContent = formatCurrency(income);
       document.getElementById('month-expense').textContent = formatCurrency(expense);
-      var bal = income - expense;
+      
+      var bal = accountBalance + income - expense;
+      
       var balEl = document.getElementById('month-balance');
       balEl.textContent = formatCurrency(bal);
       balEl.className = 'text-[11px] font-bold ' + (bal >= 0 ? 'text-white' : 'text-red-200');
@@ -461,7 +527,10 @@
         var cat = entry[0], val = entry[1], items = entry[2];
         var info = cats[cat] || cats['Outros'];
         var pct = Math.round((val / max) * 100);
-        var isOpen = expandedCategory === cat;
+        
+        // CHAVE ÚNICA POR ABA (CORREÇÃO DO BUG)
+        var expandKey = type + '_' + cat;
+        var isOpen = expandedCategory === expandKey;
 
         items.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
 
@@ -471,7 +540,6 @@
         var header = document.createElement('div');
         header.className = 'flex justify-between items-center p-2 cursor-pointer select-none active:bg-slate-50 transition-colors';
         
-        // Indicador claro de abrir/fechar
         var arrowIcon = isOpen ? 'fa-chevron-up text-black' : 'fa-chevron-down text-slate-400';
         var actionText = isOpen ? '<span class="text-[9px] text-black ml-1 font-semibold">Fechar</span>' : '';
 
@@ -483,10 +551,10 @@
           '<span class="font-bold text-slate-800">' + formatCurrency(val) + '</span>';
 
         header.addEventListener('click', function() {
-          if (expandedCategory === cat) {
+          if (expandedCategory === expandKey) {
             expandedCategory = null;
           } else {
-            expandedCategory = cat;
+            expandedCategory = expandKey;
           }
           renderCategoriesSummary();
         });
@@ -741,12 +809,12 @@
 
     document.getElementById('prev-month').addEventListener('click', function() {
       currentDate.setMonth(currentDate.getMonth() - 1);
-      expandedCategory = null; // Fecha resumo ao mudar de mês
+      expandedCategory = null;
       renderCalendar();
     });
     document.getElementById('next-month').addEventListener('click', function() {
       currentDate.setMonth(currentDate.getMonth() + 1);
-      expandedCategory = null; // Fecha resumo ao mudar de mês
+      expandedCategory = null;
       renderCalendar();
     });
     document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
@@ -774,35 +842,36 @@
     selectedDate = toKey(today.getFullYear(), today.getMonth(), today.getDate());
     renderCalendar();
     renderDayPanel();
+    renderAccountBalance();
 
-    // === SOLUÇÃO DEFINITIVA BOTÃO VOLTAR ===
-    // Adiciona um estado falso para evitar que saia do app imediatamente
     history.pushState({ page: 'home' }, '');
 
     let backCount = 0;
     window.addEventListener('popstate', function(e) {
-      // Se o modal estiver aberto, fecha ele e prende o histórico
       if (!modal.classList.contains('hidden')) {
         closeModal();
         history.pushState({ page: 'home' }, '');
         backCount = 0;
         return;
       }
-      // Se estiver na aba Histórico, volta para o Calendário e prende o histórico
+      if (!balanceModal.classList.contains('hidden')) {
+        closeBalanceModal();
+        history.pushState({ page: 'home' }, '');
+        backCount = 0;
+        return;
+      }
       if (!document.getElementById('view-historico').classList.contains('hidden')) {
         document.getElementById('tab-calendario').click();
         history.pushState({ page: 'home' }, '');
         backCount = 0;
         return;
       }
-      // Se estiver na tela inicial, pede confirmação (duplo clique)
       backCount++;
       if (backCount < 2) {
         showToast('Pressione voltar novamente para sair');
-        history.pushState({ page: 'home' }, ''); // Prende o histórico de novo
+        history.pushState({ page: 'home' }, '');
         setTimeout(function() { backCount = 0; }, 2000);
       }
-      // Se backCount >= 2, não faz nada, permite que o navegador saia do app
     });
 
     if ('serviceWorker' in navigator) {

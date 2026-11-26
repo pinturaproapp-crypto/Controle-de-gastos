@@ -2,19 +2,113 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vistoria Completa (Com Memória Real)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Checklist de Avarias - App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    /* Configurações do Tema Escuro */
+    body {
+      background-color: #121212;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-bottom: 90px; /* Espaço para o menu inferior */
+    }
+    
+    /* Inputs do Tema Escuro */
+    .input-dark {
+      background-color: #000000;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      width: 100%;
+      font-size: 0.875rem;
+    }
+    .input-dark:focus { outline: none; border-color: #555; }
+    .input-dark::placeholder { color: #555; }
+    
+    /* Botões de Combustível e Pneus */
+    .btn-toggle {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      color: #9ca3af;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-toggle.active {
+      background-color: #333;
+      color: #fff;
+      border-color: #555;
+    }
+    
+    /* Legenda de Avarias (1 a 6) */
+    .legend-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #000;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Abas Externo / Interno */
+    .tab-btn {
+      flex: 1;
+      text-align: center;
+      padding: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background-color: #e5e7eb;
+      color: #000;
+    }
+
+    /* Item do Checklist na parte de baixo */
+    .check-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #333;
+    }
+    
+    /* Botões numerados (1 a 6) da linha */
+    .num-btn {
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.4rem;
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-left: 0.25rem;
+    }
+
+    /* ===== ESTILOS DO MAPA (CÂMERA) ===== */
     .map-container {
       position: relative;
-      aspect-ratio: 1 / 1; 
+      aspect-ratio: 4 / 3; 
       width: 100%;
       overflow: hidden;
       border-radius: 0.5rem;
-      border: 1px solid #e5e7eb;
-      background-color: #f9fafb;
+      border: 1px solid #333;
+      background-color: #1e1e1e;
       overflow-x: auto; 
       scroll-snap-type: x mandatory;
       display: flex;
@@ -34,13 +128,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #9ca3af;
+      color: #6b7280;
       width: 100%;
       height: 100%;
-      background-color: #f3f4f6;
-      transition: background 0.2s;
+      background-color: #1e1e1e;
     }
-    .photo-placeholder:hover { background-color: #e5e7eb; }
     .photo-img {
       width: 100%;
       height: 100%;
@@ -49,6 +141,8 @@
     }
     .has-photo .photo-placeholder { display: none; }
     .has-photo .photo-img { display: block; }
+    
+    /* Marcador no Mapa */
     .marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -62,266 +156,363 @@
       font-size: 11px;
       font-weight: 600;
       background-color: white;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+      color: #000;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
       pointer-events: none;
       font-family: monospace;
-      font-variant-numeric: tabular-nums;
       z-index: 10;
     }
     .map-container::-webkit-scrollbar { display: none; }
-    .map-container { -ms-overflow-style: none; scrollbar-width: none; }
-    .damage-list-scroll {
-      max-height: 400px; 
-      overflow-y: auto;
-      padding-right: 4px;
+    
+    /* Menu Inferior Fixo */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #1e1e1e;
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: space-around;
+      padding: 0.75rem 0;
+      z-index: 50;
     }
-    .damage-list-scroll::-webkit-scrollbar { width: 6px; }
-    .damage-list-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    .damage-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
-<body class="p-4 bg-gray-50 min-h-screen">
+<body>
 
-  <div class="max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-sm space-y-8">
+  <!-- HEADER -->
+  <header class="flex items-center gap-4 p-4 border-b border-gray-800 bg-[#121212] sticky top-0 z-40">
+    <button class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <h1 class="text-xl font-bold text-white">Checklist de Avarias</h1>
+  </header>
+
+  <main class="p-4 max-w-3xl mx-auto space-y-6">
     
-    <!-- 1. IDENTIFICAÇÃO E BOTÃO DE BACKUP -->
-    <div>
-      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="font-bold text-xl text-gray-900">Identifique-se</h2>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Vistoria de entrada</span>
-          <button onclick="downloadBackup()" class="bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md flex items-center gap-1 transition">
-            <i data-lucide="download" class="h-3 w-3"></i> Baixar Relatório
-          </button>
+    <!-- 1. DADOS DO VEÍCULO (ESTILO PRINT 1) -->
+    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Linha 1 -->
+        <div class="col-span-2 md:col-span-1">
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Nome do Cliente</label>
+          <input type="text" id="inp-cliente" class="input-dark" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">CPF</label>
+          <input type="text" id="inp-cpf" class="input-dark" placeholder="000.000.000-00" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Telefone</label>
+          <input type="text" id="inp-telefone" class="input-dark" />
+        </div>
+        
+        <!-- Linha 2 -->
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Data Entrada</label>
+          <input type="date" id="inp-data" class="input-dark" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Nº OS</label>
+          <input type="text" id="inp-os" class="input-dark" value="1" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Veículo</label>
+          <input type="text" id="inp-veiculo" class="input-dark" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Placa</label>
+          <input type="text" id="inp-placa" class="input-dark" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Ano</label>
+          <input type="text" id="inp-ano" class="input-dark" placeholder="2021" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Cor</label>
+          <input type="text" id="inp-cor" class="input-dark" placeholder="Branco" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Km</label>
+          <input type="text" id="inp-km" class="input-dark" placeholder="00000" />
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Seguradora</label>
+          <input type="text" id="inp-seguradora" class="input-dark" placeholder="Opcional" />
+        </div>
+        
+        <!-- Endereço (linha inteira) -->
+        <div class="col-span-2 md:col-span-3">
+          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Endereço</label>
+          <input type="text" id="inp-endereco" class="input-dark" />
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vehicle-fields-container"></div>
     </div>
 
-    <hr class="border-gray-200">
-
-    <!-- 2. CHECKLIST -->
-    <div id="checklist-sections-container" class="space-y-6"></div>
-
-    <hr class="border-gray-200">
-
-    <!-- 3. MAPA DE AVARIAS -->
-    <div>
-      <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="font-bold text-xl text-gray-900">Mapa de avarias</h2>
-        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Deslize e tire fotos</span>
+    <!-- 2. COMBUSTÍVEL E PNEUS -->
+    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
+      <!-- Combustível -->
+      <label class="block text-[10px] text-gray-400 uppercase font-bold mb-2">Combustível</label>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button class="btn-toggle" onclick="selectFuel(this)">R</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">1/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">2/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">3/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">4/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">5/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">6/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">7/8</button>
+        <button class="btn-toggle" onclick="selectFuel(this)">Cheio</button>
       </div>
 
-      <div class="mb-3 flex flex-wrap gap-1.5" id="damage-buttons"></div>
+      <!-- Pneus -->
+      <label class="block text-[10px] text-gray-400 uppercase font-bold mb-2">Pneus</label>
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div>
+          <label class="block text-[10px] text-gray-500 mb-1">DE</label>
+          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-500 mb-1">DD</label>
+          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-500 mb-1">TE</label>
+          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+        </div>
+        <div>
+          <label class="block text-[10px] text-gray-500 mb-1">TD</label>
+          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. LEGENDA DE AVARIAS -->
+    <div class="flex flex-wrap gap-2 justify-center">
+      <button class="legend-btn bg-[#F59E0B]">1 Arranhado</button>
+      <button class="legend-btn bg-[#F97316]">2 Amassado</button>
+      <button class="legend-btn bg-[#EAB308]">3 Trincado</button>
+      <button class="legend-btn bg-[#EF4444] text-white">4 Quebrado</button>
+      <button class="legend-btn bg-[#DC2626] text-white">5 Falta</button>
+      <button class="legend-btn bg-[#10B981] text-white">6 Bom</button>
+    </div>
+
+    <!-- 4. ABAS (EXTERNO / INTERNO) -->
+    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-1 flex mb-2">
+      <button class="tab-btn active" onclick="switchTab('externo', this)">Externo <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
+      <button class="tab-btn" onclick="switchTab('interno', this)">Interno <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
+      <button class="tab-btn" onclick="switchTab('resumo', this)">Resumo <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
+    </div>
+
+    <!-- 5. MAPA DE AVARIAS (CÂMERA) -->
+    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-bold text-white">Mapeamento Fotográfico</h2>
+        <span class="text-[10px] uppercase text-gray-500">Deslize para mudar</span>
+      </div>
 
       <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
       
       <div class="map-container" id="damage-map">
+        <!-- Frente -->
         <div class="map-slide" data-view="frente">
           <div class="photo-placeholder" onclick="triggerCamera('frente')">
-            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Frente</p>
+            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+            <p class="text-sm font-medium">Tirar foto da Frente</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Frente">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
-
+        <!-- Lateral -->
         <div class="map-slide" data-view="lateral">
           <div class="photo-placeholder" onclick="triggerCamera('lateral')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Lateral</p>
+            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+            <p class="text-sm font-medium">Tirar foto da Lateral</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Lateral">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
-
+        <!-- Traseira -->
         <div class="map-slide" data-view="traseira">
           <div class="photo-placeholder" onclick="triggerCamera('traseira')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Traseira</p>
+            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+            <p class="text-sm font-medium">Tirar foto da Traseira</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Traseira">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
-
+        <!-- Topo -->
         <div class="map-slide" data-view="topo">
           <div class="photo-placeholder" onclick="triggerCamera('topo')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto de Cima</p>
+            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+            <p class="text-sm font-medium">Tirar foto de Cima</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Topo">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
       </div>
 
+      <!-- Paginação -->
       <div class="mt-3 flex justify-center items-center gap-2" id="map-pagination">
-        <span class="w-2 h-2 rounded-full bg-gray-800"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
+        <span class="w-2 h-2 rounded-full bg-white"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
       </div>
-      <p class="mt-2 text-center text-[11px] text-gray-500">Frente · Lateral · Traseira · Vista Superior</p>
     </div>
 
-    <hr class="border-gray-200">
+    <!-- 6. LISTA DE ITENS DO CHECKLIST (EXTERNO/INTERNO) -->
+    <div id="aba-externo" class="tab-content block">
+      <!-- Para-choque Dianteiro -->
+      <div class="check-item-row">
+        <span class="text-sm font-medium">Para-choque Dianteiro</span>
+        <div class="flex">
+          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
+          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
+          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
+          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
+          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
+          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
+        </div>
+      </div>
+      
+      <!-- Para-choque Traseiro -->
+      <div class="check-item-row">
+        <span class="text-sm font-medium">Para-choque Traseiro</span>
+        <div class="flex">
+          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
+          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
+          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
+          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
+          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
+          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
+        </div>
+      </div>
 
-    <!-- 4. LISTA DE AVARIAS -->
-    <div>
-      <div id="damage-list-container" class="damage-list-scroll"></div>
+      <!-- Grade Dianteira -->
+      <div class="check-item-row">
+        <span class="text-sm font-medium">Grade Dianteira</span>
+        <div class="flex">
+          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
+          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
+          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
+          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
+          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
+          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
+        </div>
+      </div>
     </div>
 
-  </div>
+    <div id="aba-interno" class="tab-content hidden">
+      <!-- Exemplo de item interno -->
+      <div class="check-item-row">
+        <span class="text-sm font-medium">Bancos</span>
+        <div class="flex">
+          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
+          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
+          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
+          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
+          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
+          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 7. MENU INFERIOR FIXO -->
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item text-white">
+      <i data-lucide="home" class="w-6 h-6 mb-1"></i>
+      <span>Início</span>
+    </a>
+    <a href="#" class="nav-item hover:text-white">
+      <i data-lucide="star" class="w-6 h-6 mb-1"></i>
+      <span>Favoritos</span>
+    </a>
+    <a href="#" class="nav-item hover:text-white">
+      <i data-lucide="history" class="w-6 h-6 mb-1"></i>
+      <span>Histórico</span>
+    </a>
+    <a href="#" class="nav-item hover:text-white">
+      <i data-lucide="sliders" class="w-6 h-6 mb-1"></i>
+      <span>Ajustes</span>
+    </a>
+  </nav>
 
   <script>
-    // ==========================================
-    // DADOS
-    // ==========================================
-    const damageTypes = [
-      { key: "risco", label: "Risco", color: "#B4791F" },
-      { key: "amassado", label: "Amassado", color: "#2F6F8F" },
-      { key: "trinca", label: "Trinca", color: "#7A4FA3" },
-      { key: "quebrado", label: "Quebrado", color: "#B3402F" },
-      { key: "ferrugem", label: "Ferrugem", color: "#8A5A2B" }
-    ];
-    const getTypeColor = (key) => (damageTypes.find(type => type.key === key) || damageTypes[0]).color;
+    // Inicializa os Ícones
+    lucide.createIcons();
 
-    const campos = [
-      { key: "placa", label: "Placa", placeholder: "ABC-1D23" },
-      { key: "modelo", label: "Veículo / modelo", placeholder: "Gol 1.6 - 2019" },
-      { key: "cor", label: "Cor", placeholder: "Prata" },
-      { key: "cliente", label: "Cliente", placeholder: "Nome do cliente" },
-      { key: "data", label: "Data", type: "date" },
-      { key: "km", label: "Quilometragem", placeholder: "84.320" },
-      { key: "responsavel", label: "Responsável", placeholder: "Quem conferiu" },
-      { key: "os", label: "Ordem de serviço", placeholder: "OS 1042" },
-    ];
+    // Lógica do Combustível
+    window.selectFuel = function(btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
 
-    const checklistData = [
-      { id: 'secao_1', title: 'Documentação e identificação', items: [
-          { id: 'd1', label: 'Placa e chassi conferidos' },
-          { id: 'd2', label: 'CRLV ou autorização conferido' },
-          { id: 'd3', label: 'Chave, controle e manual' },
-          { id: 'd4', label: 'Quilometragem registrada' },
-          { id: 'd5', label: 'Nível de combustível' }
-      ]},
-      { id: 'secao_2', title: 'Lataria e pintura', items: [
-          { id: 'l1', label: 'Avarias mapeadas' },
-          { id: 'l2', label: 'Para-choques conferidos' },
-          { id: 'l3', label: 'Capô e portas conferidas' },
-          { id: 'l4', label: 'Frisos e emblemas' },
-          { id: 'l5', label: 'Retrovisores e maçanetas' },
-          { id: 'l6', label: 'Pontos de ferrugem' }
-      ]},
-      { id: 'secao_3', title: 'Vidros, rodas e iluminação', items: [
-          { id: 'v1', label: 'Para-brisa e vidros' },
-          { id: 'v2', label: 'Palhetas de limpadores' },
-          { id: 'v3', label: 'Pneus, rodas e calotas' },
-          { id: 'v4', label: 'Estepe, macaco e chave' },
-          { id: 'v5', label: 'Faróis e lanternas' }
-      ]},
-      { id: 'secao_4', title: 'Interior e acessórios', items: [
-          { id: 'i1', label: 'Estofamento e painéis' },
-          { id: 'i2', label: 'Tapetes e acabamentos' },
-          { id: 'i3', label: 'Itens pessoais retirados' },
-          { id: 'i4', label: 'Documentos e objetos de valor' }
-      ]},
-      { id: 'secao_5', title: 'Mecânica e elétrica', items: [
-          { id: 'm1', label: 'Níveis de óleo e água' },
-          { id: 'm2', label: 'Bateria e terminais' },
-          { id: 'm3', label: 'Luzes de painel' },
-          { id: 'm4', label: 'Ar condicionado' },
-          { id: 'm5', label: 'Rádio e multimídia' },
-          { id: 'm6', label: 'Vidros elétricos' }
-      ]},
-      { id: 'secao_6', title: 'Fechamento da entrada', items: [
-          { id: 'f1', label: 'Cliente ciente das avarias' },
-          { id: 'f2', label: 'Orçamento aprovado' },
-          { id: 'f3', label: 'Fotos anexadas' },
-          { id: 'f4', label: 'Prazo de entrega combinado' }
-      ]}
-    ];
+    // Lógica das Abas
+    window.switchTab = function(tabName, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById(`aba-${tabName}`).classList.remove('hidden');
+    };
 
-    // ==========================================
-    // SISTEMA DE MEMÓRIA (LOCALSTORAGE)
-    // ==========================================
-    let vehicleData = JSON.parse(localStorage.getItem('vistoria_vehicleData')) || {}; 
-    let checkedItems = JSON.parse(localStorage.getItem('vistoria_checkedItems')) || {}; 
-    let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
-    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
-
-    let selectedDamageType = 'risco'; 
-    let currentPhotoView = 'frente'; 
-
-    function saveData() {
-      try {
-        localStorage.setItem('vistoria_vehicleData', JSON.stringify(vehicleData));
-        localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
-        localStorage.setItem('vistoria_marks', JSON.stringify(marks));
-        localStorage.setItem('vistoria_photos', JSON.stringify(photos));
-      } catch (e) {
-        alert("Aviso: A memória do navegador está cheia. Baixe o relatório para não perder os dados.");
-      }
-    }
-
-    // ==========================================
-    // RENDERIZAÇÃO INICIAL
-    // ==========================================
-    function renderVehicleFields() {
-      const container = document.getElementById('vehicle-fields-container');
-      container.innerHTML = campos.map(campo => `
-        <label class="block">
-          <span class="mb-1.5 block text-[10px] uppercase tracking-[0.16em] text-gray-500">${campo.label}</span>
-          <input type="${campo.type || 'text'}" value="${vehicleData[campo.key] || ''}" placeholder="${campo.placeholder || ''}"
-            oninput="vehicleData['${campo.key}'] = this.value; saveData();"
-            class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200" />
-        </label>
-      `).join('');
-    }
-
-    function renderChecklist() {
-      const container = document.getElementById('checklist-sections-container');
-      container.innerHTML = checklistData.map((section, idx) => {
-        const doneCount = section.items.filter(i => checkedItems[i.id]).length;
-        const allDone = doneCount === section.items.length;
-        return `
-          <section class="mb-6">
-            <div class="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
-              <h3 class="flex items-center gap-2.5 font-bold text-lg text-gray-900">
-                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-500">${String(idx + 1).padStart(2, "0")}</span>
-                ${section.title}
-              </h3>
-              <div class="flex items-center gap-3">
-                <span class="text-[11px] text-gray-500">${doneCount} / ${section.items.length}</span>
-                <button onclick="toggleAll('${section.id}')" class="text-[10px] uppercase text-gray-500 hover:text-gray-900">${allDone ? 'Limpar' : 'Marcar todos'}</button>
-              </div>
-            </div>
-            <ul>${section.items.map(item => `
-              <li class="border-b border-gray-100 last:border-b-0">
-                <label class="flex cursor-pointer items-start gap-3 py-2.5">
-                  <input type="checkbox" ${checkedItems[item.id] ? 'checked' : ''} onchange="toggleItem('${item.id}')" class="mt-1 h-4 w-4 cursor-pointer accent-gray-900" />
-                  <span class="text-[13.5px] ${checkedItems[item.id] ? 'text-gray-400 line-through' : 'text-gray-900'}">${item.label}</span>
-                </label>
-              </li>
-            `).join('')}</ul>
-          </section>
-        `;
-      }).join('');
-    }
-
-    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; saveData(); renderChecklist(); };
-    window.toggleAll = (secId) => { 
-      const sec = checklistData.find(s => s.id === secId);
-      const all = sec.items.every(i => checkedItems[i.id]);
-      sec.items.forEach(i => checkedItems[i.id] = !all);
-      saveData();
-      renderChecklist();
+    // Lógica dos Botões Numerados (1 a 6)
+    window.markItem = function(btn, num, color) {
+      // Limpa a seleção anterior do grupo
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.num-btn').forEach(b => {
+        b.style.backgroundColor = '#1e1e1e';
+        b.style.color = '#fff';
+        b.style.borderColor = '#333';
+      });
+      
+      // Aplica a nova cor
+      btn.style.backgroundColor = color;
+      btn.style.color = '#000';
+      btn.style.borderColor = color;
     };
 
     // ==========================================
-    // UPLOAD E COMPRESSÃO DA FOTO
+    // LÓGICA DO MAPA E CÂMERA (Mantida)
     // ==========================================
     const mapContainer = document.getElementById('damage-map');
-    
+    const damageTypes = [
+      { key: "arranhado", label: "Arranhado", color: "#F59E0B" },
+      { key: "amassado", label: "Amassado", color: "#F97316" },
+      { key: "trincado", label: "Trincado", color: "#EAB308" },
+      { key: "quebrado", label: "Quebrado", color: "#EF4444" },
+      { key: "falta", label: "Falta", color: "#DC2626" },
+      { key: "bom", label: "Bom", color: "#10B981" }
+    ];
+    const getTypeColor = (key) => (damageTypes.find(type => type.key === key) || damageTypes[0]).color;
+
+    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
+    let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
+    let currentPhotoView = 'frente';
+    let selectedDamageType = 'arranhado'; // Padrão
+
+    // Como agora temos 6 tipos de danos, vamos simular a seleção usando o primeiro botão da lista de legenda
+    document.querySelectorAll('.legend-btn').forEach((btn, idx) => {
+      btn.onclick = () => {
+        selectedDamageType = damageTypes[idx].key;
+        // Adiciona um anel de destaque no botão selecionado
+        document.querySelectorAll('.legend-btn').forEach(b => b.style.outline = 'none');
+        btn.style.outline = '2px solid white';
+      };
+    });
+
     window.triggerCamera = (viewName) => {
       currentPhotoView = viewName;
       document.getElementById('camera-input').click();
@@ -335,7 +526,6 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          // COMPRESSÃO DA IMAGEM: Redimensiona para no máximo 800px de largura/altura
           const canvas = document.createElement('canvas');
           const MAX_WIDTH = 800;
           const MAX_HEIGHT = 800;
@@ -343,15 +533,9 @@
           let height = img.height;
 
           if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
           } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
           }
 
           canvas.width = width;
@@ -359,11 +543,10 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Converte para JPEG com qualidade 70% para ficar leve
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          
           photos[currentPhotoView] = compressedBase64;
-          saveData(); // Salva na memória
+          
+          localStorage.setItem('vistoria_photos', JSON.stringify(photos));
 
           const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
           if(slide) {
@@ -374,25 +557,19 @@
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
-      
       event.target.value = ''; 
     };
 
-    // ==========================================
-    // MARCAÇÕES NO MAPA
-    // ==========================================
-    mapContainer.addEventListener('scroll', () => {
-      const scrollLeft = mapContainer.scrollLeft;
-      const width = mapContainer.offsetWidth;
-      const activeIndex = Math.round(scrollLeft / width);
-      
-      document.querySelectorAll('#map-pagination span').forEach((dot, idx) => {
-        dot.className = idx === activeIndex 
-          ? "w-2 h-2 rounded-full bg-gray-800 transition-colors" 
-          : "w-2 h-2 rounded-full bg-gray-200 transition-colors";
-      });
+    // Carrega fotos salvas
+    document.querySelectorAll('.map-slide').forEach(slide => {
+      const view = slide.getAttribute('data-view');
+      if (photos[view]) {
+        slide.querySelector('.photo-img').src = photos[view];
+        slide.classList.add('has-photo');
+      }
     });
 
+    // Adiciona marcador no mapa
     document.querySelectorAll('.map-slide').forEach(slide => {
       slide.addEventListener('click', (event) => {
         if(event.target.closest('.photo-placeholder')) return;
@@ -409,33 +586,11 @@
           type: selectedDamageType,
           view: slide.getAttribute('data-view')
         });
-        saveData();
-        renderAllDamage();
+        
+        localStorage.setItem('vistoria_marks', JSON.stringify(marks));
+        renderMarks();
       });
     });
-
-    function renderDamageButtons() {
-      const container = document.getElementById('damage-buttons');
-      container.innerHTML = damageTypes.map(tipo => `
-        <button type="button" onclick="selectedDamageType='${tipo.key}'; renderDamageButtons();"
-          class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
-            selectedDamageType === tipo.key ? 'border-gray-400 bg-gray-100 text-gray-900' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-          }">
-          <span class="h-2 w-2 rounded-full" style="background-color: ${tipo.color};"></span>
-          ${tipo.label}
-        </button>
-      `).join('');
-    }
-
-    function loadSavedPhotos() {
-      document.querySelectorAll('.map-slide').forEach(slide => {
-        const view = slide.getAttribute('data-view');
-        if (photos[view]) {
-          slide.querySelector('.photo-img').src = photos[view];
-          slide.classList.add('has-photo');
-        }
-      });
-    }
 
     function renderMarks() {
       document.querySelectorAll('.markers-layer').forEach(layer => layer.innerHTML = '');
@@ -447,91 +602,27 @@
           span.className = 'marker';
           span.style.left = `${mark.x}%`;
           span.style.top = `${mark.y}%`;
-          span.style.borderColor = getTypeColor(mark.type);
-          span.style.color = getTypeColor(mark.type);
+          span.style.backgroundColor = getTypeColor(mark.type);
+          span.style.color = (mark.type === 'bom') ? '#fff' : '#000'; // Texto branco no botão "Bom"
           span.textContent = index + 1;
           slide.querySelector('.markers-layer').appendChild(span);
         }
       });
     }
 
-    function renderDamageList() {
-      const listContainer = document.getElementById('damage-list-container');
-      listContainer.innerHTML = '';
-
-      if (marks.length === 0) {
-        listContainer.innerHTML = `<p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">Nenhuma variação marcada.</p>`;
-        return;
-      }
-
-      const ul = document.createElement('ul');
-      ul.className = "mt-4 space-y-2";
-
-      marks.forEach((mark, index) => {
-        const li = document.createElement('li');
-        li.className = "flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2";
-
-        const options = damageTypes.map(tipo => `<option value="${tipo.key}" ${mark.type === tipo.key ? 'selected' : ''}>${tipo.label}</option>`).join('');
-        const viewNames = { 'frente': 'Frente', 'lateral': 'Lateral', 'traseira': 'Traseira', 'topo': 'Topo' };
-
-        li.innerHTML = `
-          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums" 
-                style="border-color: ${getTypeColor(mark.type)}; color: ${getTypeColor(mark.type)};">${index + 1}</span>
-          <span class="min-w-0 flex-1 truncate text-[13px] text-gray-900">Avaria ${index + 1} <span class="text-gray-400 text-[10px] ml-1">(${viewNames[mark.view]})</span></span>
-          <select class="rounded-md border border-gray-200 bg-white px-2 py-1 text-[12px]" onchange="updateMarkType('${mark.id}', this.value)">${options}</select>
-          <button type="button" onclick="removeMark('${mark.id}')" class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-900"><i data-lucide="x" class="h-4 w-4"></i></button>
-        `;
-        ul.appendChild(li);
+    // Paginação Scroll
+    mapContainer.addEventListener('scroll', () => {
+      const scrollLeft = mapContainer.scrollLeft;
+      const width = mapContainer.offsetWidth;
+      const activeIndex = Math.round(scrollLeft / width);
+      
+      document.querySelectorAll('#map-pagination span').forEach((dot, idx) => {
+        dot.className = idx === activeIndex ? "w-2 h-2 rounded-full bg-white transition-colors" : "w-2 h-2 rounded-full bg-gray-600 transition-colors";
       });
+    });
 
-      listContainer.appendChild(ul);
-      lucide.createIcons(); 
-    }
-
-    window.updateMarkType = (id, newType) => {
-      const mark = marks.find(m => m.id === id);
-      if (mark) { mark.type = newType; saveData(); renderAllDamage(); }
-    };
-
-    window.removeMark = (id) => {
-      marks = marks.filter(m => m.id !== id);
-      saveData();
-      renderAllDamage();
-    };
-
-    function renderAllDamage() {
-      renderMarks();
-      renderDamageList();
-    }
-
-    // ==========================================
-    // BACKUP (BAIXAR RELATÓRIO)
-    // ==========================================
-    window.downloadBackup = function() {
-      const reportData = {
-        veiculo: vehicleData,
-        checklist: checkedItems,
-        avarias: marks,
-        fotos: photos,
-        dataGeracao: new Date().toISOString()
-      };
-
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", `vistoria_${vehicleData.placa || 'veiculo'}.json`);
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    };
-
-    // Inicialização
-    renderVehicleFields();
-    renderChecklist();
-    renderDamageButtons();
-    loadSavedPhotos(); 
-    renderAllDamage();
-
+    // Inicializa marcadores salvos
+    renderMarks();
   </script>
 </body>
 </html>

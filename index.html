@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vistoria Completa (Com Memória)</title>
+  <title>Vistoria Completa (Com Memória Real)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -84,18 +84,23 @@
 
   <div class="max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-sm space-y-8">
     
-    <!-- 1. IDENTIFICAÇÃO -->
+    <!-- 1. IDENTIFICAÇÃO E BOTÃO DE BACKUP -->
     <div>
       <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="font-bold text-xl text-gray-900">Identifique-se</h2>
-        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Vistoria de entrada</span>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Vistoria de entrada</span>
+          <button onclick="downloadBackup()" class="bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md flex items-center gap-1 transition">
+            <i data-lucide="download" class="h-3 w-3"></i> Baixar Relatório
+          </button>
+        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vehicle-fields-container"></div>
     </div>
 
     <hr class="border-gray-200">
 
-    <!-- 2. CHECKLIST COMPLETO -->
+    <!-- 2. CHECKLIST -->
     <div id="checklist-sections-container" class="space-y-6"></div>
 
     <hr class="border-gray-200">
@@ -169,7 +174,7 @@
 
   <script>
     // ==========================================
-    // DADOS GERAIS
+    // DADOS
     // ==========================================
     const damageTypes = [
       { key: "risco", label: "Risco", color: "#B4791F" },
@@ -193,53 +198,52 @@
 
     const checklistData = [
       { id: 'secao_1', title: 'Documentação e identificação', items: [
-          { id: 'd1', label: 'Placa e chassi conferidos com o documento' },
-          { id: 'd2', label: 'CRLV ou autorização do proprietário conferido' },
-          { id: 'd3', label: 'Chave, controle e manual recuperado' },
-          { id: 'd4', label: 'Quilometragem registrada no ato da entrega' },
-          { id: 'd5', label: 'Nível de combustível anotado' }
+          { id: 'd1', label: 'Placa e chassi conferidos' },
+          { id: 'd2', label: 'CRLV ou autorização conferido' },
+          { id: 'd3', label: 'Chave, controle e manual' },
+          { id: 'd4', label: 'Quilometragem registrada' },
+          { id: 'd5', label: 'Nível de combustível' }
       ]},
       { id: 'secao_2', title: 'Lataria e pintura', items: [
-          { id: 'l1', label: 'Avarias mapeadas e fotografadas' },
-          { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
-          { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
-          { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
-          { id: 'l5', label: 'Retrovisores e maçanetas conferidas' },
-          { id: 'l6', label: 'Pontos de ferrugem e pintura descascados registrados' }
+          { id: 'l1', label: 'Avarias mapeadas' },
+          { id: 'l2', label: 'Para-choques conferidos' },
+          { id: 'l3', label: 'Capô e portas conferidas' },
+          { id: 'l4', label: 'Frisos e emblemas' },
+          { id: 'l5', label: 'Retrovisores e maçanetas' },
+          { id: 'l6', label: 'Pontos de ferrugem' }
       ]},
       { id: 'secao_3', title: 'Vidros, rodas e iluminação', items: [
-          { id: 'v1', label: 'Para-brisa e vidros laterais sem trincas' },
-          { id: 'v2', label: 'Palhetas de limpadores conferidas' },
-          { id: 'v3', label: 'Pneus, rodas e calotas conferidas' },
-          { id: 'v4', label: 'Estepe, macaco e chave de roda presentes' },
-          { id: 'v5', label: 'Faróis, lanternas e luz de freio funcionando' }
+          { id: 'v1', label: 'Para-brisa e vidros' },
+          { id: 'v2', label: 'Palhetas de limpadores' },
+          { id: 'v3', label: 'Pneus, rodas e calotas' },
+          { id: 'v4', label: 'Estepe, macaco e chave' },
+          { id: 'v5', label: 'Faróis e lanternas' }
       ]},
       { id: 'secao_4', title: 'Interior e acessórios', items: [
-          { id: 'i1', label: 'Estofamento, forrações e painéis conferidos' },
-          { id: 'i2', label: 'Tapetes e acabamentos internos presentes' },
-          { id: 'i3', label: 'Itens pessoais retirados e devoluções ao cliente' },
-          { id: 'i4', label: 'Documentos e objetos de valor retirados do veículo' }
+          { id: 'i1', label: 'Estofamento e painéis' },
+          { id: 'i2', label: 'Tapetes e acabamentos' },
+          { id: 'i3', label: 'Itens pessoais retirados' },
+          { id: 'i4', label: 'Documentos e objetos de valor' }
       ]},
       { id: 'secao_5', title: 'Mecânica e elétrica', items: [
-          { id: 'm1', label: 'Nível de óleo, água e fluidos conferidos' },
-          { id: 'm2', label: 'Bateria e terminais em ordem' },
-          { id: 'm3', label: 'Luzes de painel verificados' },
-          { id: 'm4', label: 'Ar condicionado e ventilação testados' },
-          { id: 'm5', label: 'Rádio e multimídia testados' },
-          { id: 'm6', label: 'Vidros elétricos e trabalhos testados' }
+          { id: 'm1', label: 'Níveis de óleo e água' },
+          { id: 'm2', label: 'Bateria e terminais' },
+          { id: 'm3', label: 'Luzes de painel' },
+          { id: 'm4', label: 'Ar condicionado' },
+          { id: 'm5', label: 'Rádio e multimídia' },
+          { id: 'm6', label: 'Vidros elétricos' }
       ]},
       { id: 'secao_6', title: 'Fechamento da entrada', items: [
-          { id: 'f1', label: 'Cliente ciente das avarias registradas' },
-          { id: 'f2', label: 'Orçamento apresentado e aprovado' },
-          { id: 'f3', label: 'Fotos anexadas ao processo do veículo' },
-          { id: 'f4', label: 'Prazo estimado de entrega combinado' }
+          { id: 'f1', label: 'Cliente ciente das avarias' },
+          { id: 'f2', label: 'Orçamento aprovado' },
+          { id: 'f3', label: 'Fotos anexadas' },
+          { id: 'f4', label: 'Prazo de entrega combinado' }
       ]}
     ];
 
     // ==========================================
-    // SISTEMA DE SALVAMENTO (LOCALSTORAGE)
+    // SISTEMA DE MEMÓRIA (LOCALSTORAGE)
     // ==========================================
-    // Tenta carregar os dados salvos no navegador. Se não tiver, começa vazio.
     let vehicleData = JSON.parse(localStorage.getItem('vistoria_vehicleData')) || {}; 
     let checkedItems = JSON.parse(localStorage.getItem('vistoria_checkedItems')) || {}; 
     let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
@@ -248,16 +252,19 @@
     let selectedDamageType = 'risco'; 
     let currentPhotoView = 'frente'; 
 
-    // Função que salva tudo no navegador
     function saveData() {
-      localStorage.setItem('vistoria_vehicleData', JSON.stringify(vehicleData));
-      localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
-      localStorage.setItem('vistoria_marks', JSON.stringify(marks));
-      localStorage.setItem('vistoria_photos', JSON.stringify(photos));
+      try {
+        localStorage.setItem('vistoria_vehicleData', JSON.stringify(vehicleData));
+        localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
+        localStorage.setItem('vistoria_marks', JSON.stringify(marks));
+        localStorage.setItem('vistoria_photos', JSON.stringify(photos));
+      } catch (e) {
+        alert("Aviso: A memória do navegador está cheia. Baixe o relatório para não perder os dados.");
+      }
     }
 
     // ==========================================
-    // RENDERIZAÇÃO DO FORMULÁRIO E CHECKLIST
+    // RENDERIZAÇÃO INICIAL
     // ==========================================
     function renderVehicleFields() {
       const container = document.getElementById('vehicle-fields-container');
@@ -301,12 +308,7 @@
       }).join('');
     }
 
-    window.toggleItem = (id) => { 
-      checkedItems[id] = !checkedItems[id]; 
-      saveData(); // Salva no navegador
-      renderChecklist(); 
-    };
-    
+    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; saveData(); renderChecklist(); };
     window.toggleAll = (secId) => { 
       const sec = checklistData.find(s => s.id === secId);
       const all = sec.items.every(i => checkedItems[i.id]);
@@ -316,10 +318,9 @@
     };
 
     // ==========================================
-    // CÂMERA E MAPA
+    // UPLOAD E COMPRESSÃO DA FOTO
     // ==========================================
     const mapContainer = document.getElementById('damage-map');
-    const paginationDots = document.querySelectorAll('#map-pagination span');
     
     window.triggerCamera = (viewName) => {
       currentPhotoView = viewName;
@@ -328,31 +329,64 @@
 
     window.handleImageUpload = function(event) {
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          // Salva a imagem no estado e no localStorage
-          photos[currentPhotoView] = e.target.result;
-          saveData();
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // COMPRESSÃO DA IMAGEM: Redimensiona para no máximo 800px de largura/altura
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Converte para JPEG com qualidade 70% para ficar leve
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
           
-          // Atualiza a tela
+          photos[currentPhotoView] = compressedBase64;
+          saveData(); // Salva na memória
+
           const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
           if(slide) {
-            slide.querySelector('.photo-img').src = e.target.result;
+            slide.querySelector('.photo-img').src = compressedBase64;
             slide.classList.add('has-photo');
           }
         };
-        reader.readAsDataURL(file);
-      }
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      
       event.target.value = ''; 
     };
 
+    // ==========================================
+    // MARCAÇÕES NO MAPA
+    // ==========================================
     mapContainer.addEventListener('scroll', () => {
       const scrollLeft = mapContainer.scrollLeft;
       const width = mapContainer.offsetWidth;
       const activeIndex = Math.round(scrollLeft / width);
       
-      paginationDots.forEach((dot, idx) => {
+      document.querySelectorAll('#map-pagination span').forEach((dot, idx) => {
         dot.className = idx === activeIndex 
           ? "w-2 h-2 rounded-full bg-gray-800 transition-colors" 
           : "w-2 h-2 rounded-full bg-gray-200 transition-colors";
@@ -375,7 +409,7 @@
           type: selectedDamageType,
           view: slide.getAttribute('data-view')
         });
-        saveData(); // Salva a nova marcação
+        saveData();
         renderAllDamage();
       });
     });
@@ -393,7 +427,6 @@
       `).join('');
     }
 
-    // Carrega as fotos salvas ao abrir o app
     function loadSavedPhotos() {
       document.querySelectorAll('.map-slide').forEach(slide => {
         const view = slide.getAttribute('data-view');
@@ -427,7 +460,7 @@
       listContainer.innerHTML = '';
 
       if (marks.length === 0) {
-        listContainer.innerHTML = `<p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">Nenhuma variação marcada. Escolha o tipo e toque na foto para registrar.</p>`;
+        listContainer.innerHTML = `<p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">Nenhuma variação marcada.</p>`;
         return;
       }
 
@@ -457,11 +490,7 @@
 
     window.updateMarkType = (id, newType) => {
       const mark = marks.find(m => m.id === id);
-      if (mark) { 
-        mark.type = newType; 
-        saveData();
-        renderAllDamage(); 
-      }
+      if (mark) { mark.type = newType; saveData(); renderAllDamage(); }
     };
 
     window.removeMark = (id) => {
@@ -475,11 +504,32 @@
       renderDamageList();
     }
 
+    // ==========================================
+    // BACKUP (BAIXAR RELATÓRIO)
+    // ==========================================
+    window.downloadBackup = function() {
+      const reportData = {
+        veiculo: vehicleData,
+        checklist: checkedItems,
+        avarias: marks,
+        fotos: photos,
+        dataGeracao: new Date().toISOString()
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `vistoria_${vehicleData.placa || 'veiculo'}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    };
+
     // Inicialização
     renderVehicleFields();
     renderChecklist();
     renderDamageButtons();
-    loadSavedPhotos(); // Carrega fotos se existirem
+    loadSavedPhotos(); 
     renderAllDamage();
 
   </script>

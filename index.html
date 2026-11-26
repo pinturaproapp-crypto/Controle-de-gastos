@@ -1,588 +1,117 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checklist de Vistoria</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    /* Estilos do Mapa (Câmera) */
-    .map-container {
-      position: relative;
-      aspect-ratio: 4 / 3; 
-      width: 100%;
-      overflow: hidden;
-      border-radius: 0.5rem;
-      border: 1px solid #e5e7eb;
-      background-color: #f9fafb;
-      overflow-x: auto; 
-      scroll-snap-type: x mandatory;
-      display: flex;
-    }
-    .map-slide {
-      min-width: 100%;
-      height: 100%;
-      scroll-snap-align: center;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: crosshair;
-    }
-    .photo-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #9ca3af;
-      width: 100%;
-      height: 100%;
-      background-color: #f3f4f6;
-    }
-    .photo-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .has-photo .photo-placeholder { display: none; }
-    .has-photo .photo-img { display: block; }
-    
-    .marker {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 2px solid white;
-      font-size: 11px;
-      font-weight: 600;
-      background-color: white;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-      pointer-events: none;
-      font-family: monospace;
-      z-index: 10;
-    }
-    .map-container::-webkit-scrollbar { display: none; }
-    
-    .damage-list-scroll {
-      max-height: 400px; 
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    .damage-list-scroll::-webkit-scrollbar { width: 6px; }
-    .damage-list-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    .damage-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-    /* Estilo do "Papel" do Checklist */
-    .paper-box {
-      border: 1px solid #d1d5db;
-      padding: 8px;
-      font-size: 12px;
-    }
-    .paper-title {
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .paper-input {
-      border: none;
-      border-bottom: 1px dashed #9ca3af;
-      outline: none;
-      width: 100%;
-      background: transparent;
-      font-size: 12px;
-      padding: 2px;
-    }
-    .fuel-btn {
-      border: 1px solid #9ca3af;
-      padding: 4px 8px;
-      font-size: 12px;
-      background: white;
-      margin-right: 2px;
-      cursor: pointer;
-    }
-    .fuel-btn.active {
-      background: #1f2937;
-      color: white;
-    }
-  </style>
-</head>
-<body class="p-4 bg-gray-100 min-h-screen">
-
-  <div class="max-w-3xl mx-auto p-4 bg-white shadow-lg space-y-6">
-    
-    <!-- ========================================== -->
-    <!-- CABEÇALHO IDÊNTICO AO PAPEL                -->
-    <!-- ========================================== -->
-    <div>
-      <!-- Logo e Topo -->
-      <div class="flex flex-col sm:flex-row border border-gray-400">
-        <div class="sm:w-1/3 p-2 border-b sm:border-b-0 sm:border-r border-gray-400 flex items-center justify-center">
-          <span class="text-[10px] text-gray-500 uppercase text-center">Logo da sua empresa</span>
-        </div>
-        <div class="sm:w-2/3 p-2 space-y-1">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-xs w-12">Número</span>
-            <input type="text" class="paper-input flex-1" value="1">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-xs w-12">Local</span>
-            <input type="text" class="paper-input flex-1">
-          </div>
-        </div>
-        <div class="sm:w-1/3 p-2 border-t sm:border-t-0 sm:border-l border-gray-400 space-y-1">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-xs w-12">Data</span>
-            <input type="date" class="paper-input flex-1">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-xs w-12">Horário</span>
-            <input type="time" class="paper-input flex-1">
-          </div>
-        </div>
-      </div>
-
-      <!-- Dados do Veículo -->
-      <div class="border-x border-b border-gray-400 p-2 space-y-2">
-        <h3 class="paper-title">Dados do veículo</h3>
-        
-        <div class="flex gap-2">
-          <span class="text-xs font-semibold w-16">Veículo:</span>
-          <input type="text" class="paper-input flex-1">
-          <span class="text-xs font-semibold w-10">Ano:</span>
-          <input type="text" class="paper-input w-20">
-          <span class="text-xs font-semibold w-14">Motor:</span>
-          <input type="text" class="paper-input flex-1">
-        </div>
-        <div class="flex gap-2">
-          <span class="text-xs font-semibold w-16">Km atual:</span>
-          <input type="text" class="paper-input flex-1">
-          <span class="text-xs font-semibold w-10">Placa:</span>
-          <input type="text" class="paper-input w-24">
-          <span class="text-xs font-semibold w-10">Cor:</span>
-          <input type="text" class="paper-input flex-1">
-        </div>
-
-        <!-- Combustível -->
-        <div class="pt-2">
-          <span class="text-xs font-semibold">Nível de combustível</span>
-          <div class="flex flex-wrap mt-1">
-            <button class="fuel-btn" onclick="setFuel(this)">R</button>
-            <button class="fuel-btn" onclick="setFuel(this)">1/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">2/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">3/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">4/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">5/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">6/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">7/8</button>
-            <button class="fuel-btn" onclick="setFuel(this)">8/8</button>
-          </div>
-        </div>
-
-        <!-- Legenda -->
-        <div class="pt-2 flex flex-wrap gap-4 text-[10px] font-bold">
-          <span>S - Sim, existente ou OK</span>
-          <span>I - Incompleto</span>
-          <span>N - Não existente</span>
-          <span>A - Avariado</span>
-        </div>
-      </div>
-      
-      <!-- Pneus -->
-      <div class="border-x border-b border-gray-400 p-2 flex justify-between">
-        <div>
-          <span class="text-xs font-semibold block mb-1">Pneus</span>
-          <div class="flex flex-col gap-1 text-xs">
-            <label><input type="checkbox" class="mr-1"> Diant. Esq.</label>
-            <label><input type="checkbox" class="mr-1"> Traz. Esq.</label>
-          </div>
-        </div>
-        <div>
-          <span class="text-xs font-semibold block mb-1">&nbsp;</span>
-          <div class="flex flex-col gap-1 text-xs">
-            <label><input type="checkbox" class="mr-1"> Diant. Dir.</label>
-            <label><input type="checkbox" class="mr-1"> Traz. Dir.</label>
-          </div>
-        </div>
-        <div>
-          <span class="text-xs font-semibold block mb-1">Calotas</span>
-          <div class="flex flex-col gap-1 text-xs">
-            <label><input type="checkbox" class="mr-1"> Diant. Esq.</label>
-            <label><input type="checkbox" class="mr-1"> Traz. Esq.</label>
-          </div>
-        </div>
-        <div>
-          <span class="text-xs font-semibold block mb-1">&nbsp;</span>
-          <div class="flex flex-col gap-1 text-xs">
-            <label><input type="checkbox" class="mr-1"> Diant. Dir.</label>
-            <label><input type="checkbox" class="mr-1"> Traz. Dir.</label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- MAPA DE AVARIAS (CÂMERA)                   -->
-    <!-- ========================================== -->
-    <div class="border border-gray-400 p-2">
-      <h3 class="paper-title mb-2">Registro Fotográfico de Avarias</h3>
-      
-      <div class="mb-2 flex flex-wrap gap-1.5" id="damage-buttons"></div>
-
-      <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
-      
-      <div class="map-container" id="damage-map">
-        <!-- Frente -->
-        <div class="map-slide" data-view="frente">
-          <div class="photo-placeholder" onclick="triggerCamera('frente')">
-            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Frente</p>
-          </div>
-          <img class="photo-img pointer-events-none" alt="Frente">
-          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
-        </div>
-        <!-- Lateral -->
-        <div class="map-slide" data-view="lateral">
-          <div class="photo-placeholder" onclick="triggerCamera('lateral')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Lateral</p>
-          </div>
-          <img class="photo-img pointer-events-none" alt="Lateral">
-          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
-        </div>
-        <!-- Traseira -->
-        <div class="map-slide" data-view="traseira">
-          <div class="photo-placeholder" onclick="triggerCamera('traseira')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto da Traseira</p>
-          </div>
-          <img class="photo-img pointer-events-none" alt="Traseira">
-          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
-        </div>
-        <!-- Topo -->
-        <div class="map-slide" data-view="topo">
-          <div class="photo-placeholder" onclick="triggerCamera('topo')">
-             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <p class="font-medium text-sm">Tirar foto de Cima</p>
-          </div>
-          <img class="photo-img pointer-events-none" alt="Topo">
-          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
-        </div>
-      </div>
-
-      <div class="mt-3 flex justify-center items-center gap-2" id="map-pagination">
-        <span class="w-2 h-2 rounded-full bg-gray-800"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
-      </div>
-      <p class="mt-1 text-center text-[11px] text-gray-500">Frente · Lateral · Traseira · Vista Superior</p>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- CHECKLIST ORIGINAL COMPLETO                -->
-    <!-- ========================================== -->
-    <div id="checklist-sections-container" class="space-y-4"></div>
-
-    <!-- LISTA DE AVARIAS MARCADAS -->
-    <div class="border border-gray-400 p-2">
-      <h3 class="paper-title">Avarias Registradas</h3>
-      <div id="damage-list-container" class="damage-list-scroll"></div>
-    </div>
-
-    <!-- Observações -->
-    <div class="border border-gray-400 p-2">
-      <h3 class="paper-title">Observações</h3>
-      <textarea class="w-full border border-gray-300 p-2 text-sm h-20" placeholder="Digite aqui..."></textarea>
-    </div>
-    
-  </div>
-
-  <script>
-    // ==========================================
-    // DADOS E CONFIGURAÇÕES
-    // ==========================================
-    const damageTypes = [
-      { key: "risco", label: "Risco", color: "#B4791F" },
-      { key: "amassado", label: "Amassado", color: "#2F6F8F" },
-      { key: "trinca", label: "Trinca", color: "#7A4FA3" },
-      { key: "quebrado", label: "Quebrado", color: "#B3402F" },
-      { key: "ferrugem", label: "Ferrugem", color: "#8A5A2B" }
-    ];
-    const getTypeColor = (key) => (damageTypes.find(type => type.key === key) || damageTypes[0]).color;
-
-    // SUAS 6 SEÇÕES ORIGINAIS COMPLETAS DO ARQUIVO vistoriaEntrada.js
-    const checklistData = [
-      { id: 'secao_1', title: 'Documentação e identificação', items: [
-          { id: 'd1', label: 'Placa e chassi conferidos com o documento' },
-          { id: 'd2', label: 'CRLV ou autorização do proprietário conferido' },
-          { id: 'd3', label: 'Chave, controle e manual recuperado' },
-          { id: 'd4', label: 'Quilometragem registrada no ato da entrega' },
-          { id: 'd5', label: 'Nível de combustível anotado' }
-      ]},
-      { id: 'secao_2', title: 'Lataria e pintura', items: [
-          { id: 'l1', label: 'Avarias mapeadas e fotografadas (riscos, amassados, trincas)' },
-          { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
-          { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
-          { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
-          { id: 'l5', label: 'Retrovisores e maçanetas conferidas' },
-          { id: 'l6', label: 'Pontos de ferrugem e pintura descascados registrados' }
-      ]},
-      { id: 'secao_3', title: 'Vidros, rodas e iluminação', items: [
-          { id: 'v1', label: 'Para-brisa e vidros laterais sem trincas' },
-          { id: 'v2', label: 'Palhetas de limpadores conferidas' },
-          { id: 'v3', label: 'Pneus, rodas e calotas conferidas' },
-          { id: 'v4', label: 'Estepe, macaco e chave de roda presentes' },
-          { id: 'v5', label: 'Faróis, lanternas e luz de freio funcionando' }
-      ]},
-      { id: 'secao_4', title: 'Interior e acessórios', items: [
-          { id: 'i1', label: 'Estofamento, forrações e painéis conferidos' },
-          { id: 'i2', label: 'Tapetes e acabamentos internos presentes' },
-          { id: 'i3', label: 'Itens pessoais retirados e devoluções ao cliente' },
-          { id: 'i4', label: 'Documentos e objetos de valor retirados do veículo' }
-      ]},
-      { id: 'secao_5', title: 'Mecânica e elétrica', items: [
-          { id: 'm1', label: 'Nível de óleo, água e fluidos conferidos' },
-          { id: 'm2', label: 'Bateria e terminais em ordem' },
-          { id: 'm3', label: 'Luzes de painel verificados' },
-          { id: 'm4', label: 'Ar condicionado e ventilação testados' },
-          { id: 'm5', label: 'Rádio e multimídia testados' },
-          { id: 'm6', label: 'Vidros elétricos e trabalhos testados' }
-      ]},
-      { id: 'secao_6', title: 'Fechamento da entrada', items: [
-          { id: 'f1', label: 'Cliente ciente das avarias registradas' },
-          { id: 'f2', label: 'Orçamento apresentado e aprovado' },
-          { id: 'f3', label: 'Fotos anexadas ao processo do veículo' },
-          { id: 'f4', label: 'Prazo estimado de entrega combinado' }
-      ]}
-    ];
-
-    // ==========================================
-    // MEMÓRIA E ESTADOS
-    // ==========================================
-    let checkedItems = JSON.parse(localStorage.getItem('vistoria_checkedItems')) || {}; 
-    let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
-    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
-    let selectedDamageType = 'risco'; 
-    let currentPhotoView = 'frente'; 
-
-    function saveData() {
-      localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
-      localStorage.setItem('vistoria_marks', JSON.stringify(marks));
-      localStorage.setItem('vistoria_photos', JSON.stringify(photos));
-    }
-
-    // Lógica do Combustível
-    window.setFuel = function(btn) {
-      const parent = btn.parentElement;
-      parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    };
-
-    // ==========================================
-    // RENDERIZAÇÃO DO CHECKLIST COMPLETO
-    // ==========================================
-    function renderChecklist() {
-      const container = document.getElementById('checklist-sections-container');
-      container.innerHTML = checklistData.map((section, idx) => {
-        const doneCount = section.items.filter(i => checkedItems[i.id]).length;
-        const allDone = doneCount === section.items.length;
-        return `
-          <div class="border border-gray-400 p-2">
-            <div class="mb-2 flex items-center justify-between border-b border-gray-300 pb-1">
-              <h3 class="font-bold text-sm text-gray-900 uppercase">
-                ${String(idx + 1).padStart(2, "0")} - ${section.title}
-              </h3>
-              <div class="flex items-center gap-3">
-                <span class="text-[11px] text-gray-500">${doneCount} / ${section.items.length}</span>
-                <button onclick="toggleAll('${section.id}')" class="text-[10px] uppercase text-gray-500 hover:text-gray-900 underline">${allDone ? 'Limpar' : 'Marcar todos'}</button>
-              </div>
-            </div>
-            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">${section.items.map(item => `
-              <li>
-                <label class="flex cursor-pointer items-start gap-2 py-1">
-                  <input type="checkbox" ${checkedItems[item.id] ? 'checked' : ''} onchange="toggleItem('${item.id}')" class="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-gray-900" />
-                  <span class="text-xs ${checkedItems[item.id] ? 'text-gray-400 line-through' : 'text-gray-800'}">${item.label}</span>
-                </label>
-              </li>
-            `).join('')}</ul>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; saveData(); renderChecklist(); };
-    window.toggleAll = (secId) => { 
-      const sec = checklistData.find(s => s.id === secId);
-      const all = sec.items.every(i => checkedItems[i.id]);
-      sec.items.forEach(i => checkedItems[i.id] = !all);
-      saveData();
-      renderChecklist();
-    };
-
-    // ==========================================
-    // LÓGICA DA CÂMERA E MAPA
-    // ==========================================
-    const mapContainer = document.getElementById('damage-map');
-    
-    window.triggerCamera = (viewName) => {
-      currentPhotoView = viewName;
-      document.getElementById('camera-input').click();
-    };
-
-    window.handleImageUpload = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          
-          photos[currentPhotoView] = compressedBase64;
-          saveData();
-
-          const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
-          if(slide) {
-            slide.querySelector('.photo-img').src = compressedBase64;
-            slide.classList.add('has-photo');
-          }
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-      event.target.value = ''; 
-    };
-
-    // Carrega fotos salvas
-    document.querySelectorAll('.map-slide').forEach(slide => {
-      const view = slide.getAttribute('data-view');
-      if (photos[view]) {
-        slide.querySelector('.photo-img').src = photos[view];
-        slide.classList.add('has-photo');
-      }
-    });
-
-    function renderDamageButtons() {
-      const container = document.getElementById('damage-buttons');
-      container.innerHTML = damageTypes.map(tipo => `
-        <button type="button" onclick="selectedDamageType='${tipo.key}'; renderDamageButtons();"
-          class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
-            selectedDamageType === tipo.key ? 'border-gray-400 bg-gray-100 text-gray-900' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-          }">
-          <span class="h-2 w-2 rounded-full" style="background-color: ${tipo.color};"></span>
-          ${tipo.label}
-        </button>
-      `).join('');
-    }
-
-    function renderMarks() {
-      document.querySelectorAll('.markers-layer').forEach(layer => layer.innerHTML = '');
-      
-      marks.forEach((mark, index) => {
-        const slide = document.querySelector(`.map-slide[data-view="${mark.view}"]`);
-        if (slide) {
-          const span = document.createElement('span');
-          span.className = 'marker';
-          span.style.left = `${mark.x}%`;
-          span.style.top = `${mark.y}%`;
-          span.style.borderColor = getTypeColor(mark.type);
-          span.style.color = getTypeColor(mark.type);
-          span.textContent = index + 1;
-          slide.querySelector('.markers-layer').appendChild(span);
-        }
-      });
-    }
-
-    document.querySelectorAll('.map-slide').forEach(slide => {
-      slide.addEventListener('click', (event) => {
-        if(event.target.closest('.photo-placeholder')) return;
-        if(!slide.classList.contains('has-photo')) return;
-
-        const rect = slide.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 100;
-        const y = ((event.clientY - rect.top) / rect.height) * 100;
-        
-        marks.push({ 
-          id: Date.now().toString(), 
-          x: parseFloat(x.toFixed(2)), 
-          y: parseFloat(y.toFixed(2)), 
-          type: selectedDamageType,
-          view: slide.getAttribute('data-view')
-        });
-        saveData();
-        renderMarks();
-        renderDamageList();
-      });
-    });
-
-    function renderDamageList() {
-      const listContainer = document.getElementById('damage-list-container');
-      listContainer.innerHTML = '';
-
-      if (marks.length === 0) {
-        listContainer.innerHTML = `<p class="mt-2 text-center text-[11px] text-gray-500">Nenhuma avaria marcada.</p>`;
-        return;
-      }
-
-      const ul = document.createElement('ul');
-      ul.className = "space-y-1";
-
-      marks.forEach((mark, index) => {
-        const li = document.createElement('li');
-        li.className = "flex items-center gap-2 border-b border-gray-200 py-1";
-
-        const options = damageTypes.map(tipo => `<option value="${tipo.key}" ${mark.type === tipo.key ? 'selected' : ''}>${tipo.label}</option>`).join('');
-        const viewNames = { 'frente': 'Frente', 'lateral': 'Lateral', 'traseira': 'Traseira', 'topo': 'Topo' };
-
-        li.innerHTML = `
-          <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold" 
-                style="border-color: ${getTypeColor(mark.type)}; color: ${getTypeColor(mark.type)};">${index + 1}</span>
-          <span class="flex-1 text-xs">Avaria ${index + 1} <span class="text-gray-400 text-[9px]">(${viewNames[mark.view]})</span></span>
-          <select class="rounded border border-gray-300 px-1 py-0.5 text-[11px]" onchange="updateMarkType('${mark.id}', this.value)">${options}</select>
-          <button type="button" onclick="removeMark('${mark.id}')" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="h-3 w-3"></i></button>
-        `;
-        ul.appendChild(li);
-      });
-
-      listContainer.appendChild(ul);
-      lucide.createIcons(); 
-    }
-
-    window.updateMarkType = (id, newType) => {
-      const mark = marks.find(m => m.id === id);
-      if (mark) { mark.type = newType; saveData(); renderMarks(); renderDamageList(); }
-    };
-
-    window.removeMark = (id) => {
-      marks = marks.filter(m => m.id !== id);
-      saveData();
-      renderMarks();
-      renderDamageList();
-    };
-
-    // Inicialização
-    renderChecklist();
-    renderDamageButtons();
-    renderMarks();
-    renderDamageList();
-
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vistoria de entrada</title>
+<style>
+:root{color-scheme:dark;--bg:#000;--cd:#141414;--ln:#2b2b2b;--mu:#9a9a9a;--tx:#f2f2f2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif;padding-bottom:60px}
+.w{max-width:760px;margin:0 auto;padding:12px}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:22px;padding:16px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 12px}h1{font-size:20px;margin:0}
+small,.mu{color:var(--mu)}
+.g{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu)}
+input,select{width:100%;min-width:0;margin-top:6px;background:#000;color:var(--tx);border:1px solid var(--ln);border-radius:14px;padding:12px;font:inherit}
+input::placeholder{color:#555}
+button{font:inherit;color:var(--tx);background:#222;border:1px solid var(--ln);border-radius:12px;padding:10px 14px;cursor:pointer}
+button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:600}
+.sm{padding:6px 10px;font-size:12px}
+.bar{position:sticky;top:0;z-index:5;background:#000d;backdrop-filter:blur(8px);display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--ln)}
+.bar span{flex:1;font-size:12px;color:var(--mu)}
+.r{display:flex;gap:8px;align-items:center}
+.ck label{display:flex;gap:12px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--tx);font-weight:400;padding:10px 0;border-top:1px solid var(--ln)}
+.ck input{width:20px;height:20px;margin:0;accent-color:#f2f2f2}
+.ck h2{display:flex;gap:8px;align-items:center}.ck h2 small{flex:1;font-weight:400}
+.ch{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.ch button{white-space:nowrap;border-radius:99px;padding:7px 12px;font-size:12px}
+.pb{position:relative;aspect-ratio:4/3;background:#0a0a0a;border:1px solid var(--ln);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.pb img{width:100%;height:100%;object-fit:contain;display:block}
+.pb.e{display:flex;align-items:center;justify-content:center;color:var(--mu);cursor:pointer}
+.mk{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid;background:#000c;font:600 11px monospace;font-style:normal;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.dm{border-top:1px solid var(--ln);padding:10px 0}.dm .r{margin-bottom:8px}.dm span{flex:1;color:var(--mu)}
+.dm select{width:auto;margin:0}.dm input{margin:0 0 8px}
+.th{height:56px;border-radius:8px}
+#sg{width:100%;height:150px;background:#fff;border-radius:14px;touch-action:none;display:block;margin-bottom:8px}
+#rep{display:none}
+@media print{@page{margin:12mm}body{background:#fff}#app{display:none}#rep{display:block;color:#000;font:12px/1.45 sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#rep h1{font-size:20px}#rep h3{margin:16px 0 6px;border-bottom:1px solid #999;padding-bottom:3px}
+.rg,.rp{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}.rp{gap:10px}
+.rg>div,.rp>div,.ra{break-inside:avoid}.ra{margin-bottom:6px}.ra img{height:90px;margin-top:3px}
+#rep .pb{background:#fff;border-color:#999}#rep .mk{background:#fff}.sg2{height:80px;border:1px solid #999}}
+</style></head><body>
+<div id="app">
+<div id="ls"><div class="bar"><h1 style="flex:1">Vistorias</h1><button class="p" onclick="nw()">Nova vistoria</button></div><div class="w" id="li"></div></div>
+<div id="ed" hidden>
+<div class="bar"><button onclick="home()">← Lista</button><span id="st">salvo</span><button class="p" onclick="pdf()">Gerar PDF</button></div>
+<div class="w">
+<div class="card"><h2>Identificação</h2><div class="g" id="hd"></div></div>
+<div id="ck"></div>
+<div class="card"><h2>Mapa de avarias</h2><div class="ch" id="tp"></div><div class="ch" id="vw"></div><div id="pa"></div></div>
+<div class="card"><h2>Avarias</h2><div id="dl"></div></div>
+<div class="card"><h2>Assinatura do cliente</h2><canvas id="sg"></canvas><button class="sm" onclick="clr()">Limpar assinatura</button></div>
+</div></div></div>
+<div id="rep"></div>
+<input type="file" id="fi" accept="image/*" capture="environment" hidden>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),fd=d=>d?d.split('-').reverse().join('/'):'';
+const T={risco:['Risco','#facc15'],amassado:['Amassado','#38bdf8'],trinca:['Trinca','#c084fc'],quebrado:['Quebrado','#f87171'],ferrugem:['Ferrugem','#fb923c']};
+const VW=[['frente','Frente'],['le','Lateral esq.'],['ld','Lateral dir.'],['tras','Traseira'],['topo','Topo'],['painel','Painel / km'],['int','Interior']],VL=Object.fromEntries(VW);
+const F=[['nome','Nome do cliente',12],['cpf','CPF',6,'000.000.000-00'],['tel','Telefone',6,'(00) 00000-0000'],['data','Data entrada',5,'','date'],['os','Nº OS',3,'','number'],['placa','Placa',4],['veic','Veículo',6],['ano','Ano',3,'2021'],['cor','Cor',3,'Branco'],['km','KM',4,'00000'],['seg','Seguradora',8,'Opcional'],['end','Endereço',12]];
+const D=v=>v.replace(/\D/g,'');
+const MK={cpf:v=>{const d=D(v).slice(0,11);return[d.slice(0,3),d.slice(3,6),d.slice(6,9)].filter(Boolean).join('.')+(d.length>9?'-'+d.slice(9):'')},
+tel:v=>{const d=D(v).slice(0,11);return d.length>2?'('+d.slice(0,2)+') '+d.slice(2,7)+(d.length>7?'-'+d.slice(7):''):d},
+placa:v=>v.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,8)};
+const CK=[['Documentação',['Placa e chassi conferidos','CRLV ou autorização','Chave, controle e manual','Quilometragem registrada','Nível de combustível']],['Lataria e pintura',['Para-choques','Capô e portas','Frisos e emblemas','Retrovisores e maçanetas','Pontos de ferrugem']],['Vidros, rodas e iluminação',['Para-brisa e vidros','Palhetas','Pneus, rodas e calotas','Estepe, macaco e chave','Faróis e lanternas']],['Interior e acessórios',['Estofamento e painéis','Tapetes e acabamentos','Itens pessoais retirados','Documentos e valores']],['Mecânica e elétrica',['Níveis de óleo e água','Bateria e terminais','Luzes de painel','Ar condicionado','Rádio e multimídia','Vidros elétricos']],['Fechamento',['Cliente ciente das avarias','Orçamento aprovado','Fotos anexadas','Prazo combinado']]];
+let db,cur,vw='frente',ty='risco',tm,dirty=0,pend;
+/* armazenamento */
+const q=(m,f)=>new Promise((ok,no)=>{const t=db.transaction('v',m),r=f(t.objectStore('v'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>no(t.error)});
+const rq=indexedDB.open('vistoria',1);rq.onupgradeneeded=()=>rq.result.createObjectStore('v',{keyPath:'id'});rq.onsuccess=()=>{db=rq.result;home()};
+function sv(){dirty=1;cur.upd=Date.now();$('#st').textContent='salvando…';clearTimeout(tm);tm=setTimeout(async()=>{await q('readwrite',s=>s.put(cur));dirty=0;$('#st').textContent='salvo'},400)}
+const scr=n=>{$('#ls').hidden=n!='ls';$('#ed').hidden=n!='ed'};
+/* lista */
+async function home(){if(cur&&dirty){clearTimeout(tm);await q('readwrite',s=>s.put(cur))}cur=null;dirty=0;scr('ls');window.scrollTo(0,0);
+const a=(await q('readonly',s=>s.getAll())).sort((a,b)=>b.upd-a.upd);
+$('#li').innerHTML=a.map(v=>`<div class="card r" onclick="op(${v.id})" style="cursor:pointer"><div style="flex:1"><b>OS ${esc(v.hdr.os)} · ${esc(v.hdr.nome||'Sem nome')}</b><br><small>${esc(v.hdr.veic||'')} ${esc(v.hdr.placa||'')} · ${v.mk.length} avaria(s) · ${fd(v.hdr.data)}</small></div><button class="sm" onclick="event.stopPropagation();del(${v.id})">Excluir</button></div>`).join('')||'<p class="mu">Nenhuma vistoria ainda. Toque em “Nova vistoria”.</p>'}
+async function nw(){const a=await q('readonly',s=>s.getAll());op({id:Date.now(),upd:Date.now(),hdr:{data:new Date().toLocaleDateString('sv'),os:a.reduce((m,v)=>Math.max(m,+v.hdr.os||0),0)+1},chk:{},ph:{},mk:[],sig:''})}
+async function del(id){if(confirm('Excluir esta vistoria?')){await q('readwrite',s=>s.delete(id));home()}}
+async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);hd();ck();pa();sg()}
+/* cabeçalho */
+function hd(){$('#hd').innerHTML=F.map(([k,l,s,p,t])=>`<label style="grid-column:span ${s}">${l}<input data-k="${k}" type="${t||'text'}" ${t=='number'?'inputmode="numeric"':''} placeholder="${p||''}" value="${esc(cur.hdr[k]||'')}"></label>`).join('')}
+document.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;if(MK[k])e.target.value=MK[k](e.target.value);cur.hdr[k]=e.target.value;sv()});
+/* checklist */
+function ck(){$('#ck').innerHTML=CK.map(([t,it],i)=>`<div class="card ck"><h2>${t} <small>${it.filter((_,j)=>cur.chk[i+'.'+j]).length}/${it.length}</small><button class="sm" onclick="all(${i})">Marcar todos</button></h2>${it.map((x,j)=>`<label><input type="checkbox" ${cur.chk[i+'.'+j]?'checked':''} onchange="tg('${i}.${j}')">${x}</label>`).join('')}</div>`).join('')}
+function tg(k){cur.chk[k]=!cur.chk[k];sv();ck()}
+function all(i){const it=CK[i][1],v=!it.every((_,j)=>cur.chk[i+'.'+j]);it.forEach((_,j)=>cur.chk[i+'.'+j]=v);sv();ck()}
+/* fotos e marcações */
+const cmp=(f,M,Q)=>new Promise(r=>{const i=new Image;i.onload=()=>{const s=Math.min(1,M/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(i.src);r(c.toDataURL('image/jpeg',Q))};i.src=URL.createObjectURL(f)});
+const pick=cb=>{pend=cb;$('#fi').click()};
+$('#fi').onchange=e=>{const f=e.target.files[0];if(f&&pend)pend(f);e.target.value=''};
+const mks=v=>cur.mk.map((m,i)=>m.v==v?`<i class="mk" style="left:${m.x}%;top:${m.y}%;color:${T[m.t][1]}">${i+1}</i>`:'').join('');
+function pa(){$('#tp').innerHTML=Object.entries(T).map(([k,[l,c]])=>`<button class="${ty==k?'on':''}" onclick="ty='${k}';pa()"><b style="color:${ty==k?'#000':c}">●</b> ${l}</button>`).join('');
+$('#vw').innerHTML=VW.map(([k,l])=>`<button class="${vw==k?'on':''}" onclick="vw='${k}';pa()">${l}${cur.ph[k]?' ✓':''}</button>`).join('');
+const p=cur.ph[vw];
+$('#pa').innerHTML=p?`<div class="pb" onclick="add(event)" style="cursor:crosshair"><img src="${p}">${mks(vw)}</div><div class="r"><button class="sm" onclick="foto()">Trocar foto</button><small>Toque na foto para marcar uma avaria (${T[ty][0]})</small></div>`:`<div class="pb e" onclick="foto()">Tirar foto: ${VL[vw]}</div>`;dl()}
+function foto(){pick(async f=>{cur.ph[vw]=await cmp(f,1100,.72);sv();pa()})}
+function add(e){const r=e.currentTarget.getBoundingClientRect();cur.mk.push({x:+((e.clientX-r.left)/r.width*100).toFixed(1),y:+((e.clientY-r.top)/r.height*100).toFixed(1),t:ty,v:vw,n:'',p:''});sv();pa()}
+function dl(){$('#dl').innerHTML=cur.mk.length?cur.mk.map((m,i)=>`<div class="dm"><div class="r"><b style="color:${T[m.t][1]}">${i+1}</b><span>${VL[m.v]}</span><select onchange="mu(${i},'t',this.value)">${Object.entries(T).map(([k,[l]])=>`<option value="${k}" ${m.t==k?'selected':''}>${l}</option>`).join('')}</select><button class="sm" onclick="rm(${i})">✕</button></div><input placeholder="Observação (ex.: risco de 10 cm na porta)" value="${esc(m.n)}" oninput="mu(${i},'n',this.value,1)"><div class="r">${m.p?`<img class="th" src="${m.p}">`:''}<button class="sm" onclick="cl(${i})">${m.p?'Trocar foto de perto':'Foto de perto'}</button></div></div>`).join(''):'<p class="mu">Nenhuma avaria marcada. Tire a foto de uma vista e toque onde está o dano.</p>'}
+function mu(i,k,v,quiet){cur.mk[i][k]=v;sv();if(!quiet)pa()}
+function rm(i){cur.mk.splice(i,1);sv();pa()}
+function cl(i){pick(async f=>{cur.mk[i].p=await cmp(f,700,.7);sv();dl()})}
+/* assinatura */
+function sg(){const c=$('#sg'),x=c.getContext('2d');c.width=c.offsetWidth;c.height=150;x.lineWidth=2.5;x.lineCap='round';x.strokeStyle='#000';
+if(cur.sig){const i=new Image;i.onload=()=>x.drawImage(i,0,0,c.width,c.height);i.src=cur.sig}
+let d=0;const p=e=>{const r=c.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+c.onpointerdown=e=>{d=1;c.setPointerCapture(e.pointerId);x.beginPath();x.moveTo(...p(e))};
+c.onpointermove=e=>{if(d){x.lineTo(...p(e));x.stroke()}};
+c.onpointerup=()=>{if(d){d=0;cur.sig=c.toDataURL();sv()}}}
+function clr(){const c=$('#sg');c.getContext('2d').clearRect(0,0,c.width,c.height);cur.sig='';sv()}
+/* relatório em PDF (imprimir > salvar como PDF) */
+function pdf(){const c=cur,H=c.hdr,old=document.title;
+$('#rep').innerHTML=`<h1>Vistoria de entrada</h1><div class="rg">${F.map(([k,l])=>`<div><b>${l}:</b> ${esc(k=='data'?fd(H[k]):H[k]||'—')}</div>`).join('')}</div>
+<h3>Checklist</h3><div class="rg">${CK.map(([t,it],i)=>`<div><b>${t}</b>${it.map((x,j)=>`<br>${c.chk[i+'.'+j]?'☑':'☐'} ${x}`).join('')}</div>`).join('')}</div>
+<h3>Fotos e marcações</h3><div class="rp">${VW.filter(([k])=>c.ph[k]).map(([k,l])=>`<div><b>${l}</b><div class="pb"><img src="${c.ph[k]}">${mks(k)}</div></div>`).join('')||'<p>Sem fotos.</p>'}</div>
+<h3>Lista de avarias</h3>${c.mk.length?c.mk.map((m,i)=>`<div class="ra"><b>${i+1}. ${T[m.t][0]}</b> (${VL[m.v]}) ${esc(m.n)}${m.p?`<br><img src="${m.p}">`:''}</div>`).join(''):'<p>Nenhuma avaria registrada.</p>'}
+<h3>Assinatura do cliente</h3>${c.sig?`<img class="sg2" src="${c.sig}">`:'<p>(sem assinatura)</p>'}<p>${esc(H.nome||'')} — ${fd(H.data)}</p>`;
+document.title='Vistoria OS '+(H.os||'')+' '+(H.placa||'');print();document.title=old}
+</script></body></html>

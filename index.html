@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vistoria Completa com Fotos</title>
+  <title>Vistoria Completa (Com Memória)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -15,7 +15,6 @@
       border-radius: 0.5rem;
       border: 1px solid #e5e7eb;
       background-color: #f9fafb;
-      /* Carrossel */
       overflow-x: auto; 
       scroll-snap-type: x mandatory;
       display: flex;
@@ -30,8 +29,6 @@
       justify-content: center;
       cursor: crosshair;
     }
-    
-    /* Placeholder de Foto (Onde clica para tirar foto) */
     .photo-placeholder {
       display: flex;
       flex-direction: column;
@@ -44,19 +41,14 @@
       transition: background 0.2s;
     }
     .photo-placeholder:hover { background-color: #e5e7eb; }
-
-    /* A Imagem tirada */
     .photo-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: none;
     }
-
-    /* Se tiver imagem carregada, esconde o placeholder e mostra a imagem */
     .has-photo .photo-placeholder { display: none; }
     .has-photo .photo-img { display: block; }
-
     .marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -76,12 +68,8 @@
       font-variant-numeric: tabular-nums;
       z-index: 10;
     }
-
-    /* Barra de rolagem do carrossel */
     .map-container::-webkit-scrollbar { display: none; }
     .map-container { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Scroll da lista de avarias */
     .damage-list-scroll {
       max-height: 400px; 
       overflow-y: auto;
@@ -112,7 +100,7 @@
 
     <hr class="border-gray-200">
 
-    <!-- 3. MAPA DE AVARIAS (4 Fotos Independentes) -->
+    <!-- 3. MAPA DE AVARIAS -->
     <div>
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="font-bold text-xl text-gray-900">Mapa de avarias</h2>
@@ -121,13 +109,9 @@
 
       <div class="mb-3 flex flex-wrap gap-1.5" id="damage-buttons"></div>
 
-      <!-- Input de Câmera Global -->
       <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
       
-      <!-- Carrossel de 4 Fotos -->
       <div class="map-container" id="damage-map">
-        
-        <!-- Vista 1: Frente -->
         <div class="map-slide" data-view="frente">
           <div class="photo-placeholder" onclick="triggerCamera('frente')">
             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -137,39 +121,34 @@
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
 
-        <!-- Vista 2: Lateral -->
         <div class="map-slide" data-view="lateral">
           <div class="photo-placeholder" onclick="triggerCamera('lateral')">
-            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             <p class="font-medium text-sm">Tirar foto da Lateral</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Lateral">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
 
-        <!-- Vista 3: Traseira -->
         <div class="map-slide" data-view="traseira">
           <div class="photo-placeholder" onclick="triggerCamera('traseira')">
-            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             <p class="font-medium text-sm">Tirar foto da Traseira</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Traseira">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
 
-        <!-- Vista 4: Topo -->
         <div class="map-slide" data-view="topo">
           <div class="photo-placeholder" onclick="triggerCamera('topo')">
-            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             <p class="font-medium text-sm">Tirar foto de Cima</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Topo">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
-
       </div>
 
-      <!-- Paginação e Legenda -->
       <div class="mt-3 flex justify-center items-center gap-2" id="map-pagination">
         <span class="w-2 h-2 rounded-full bg-gray-800"></span>
         <span class="w-2 h-2 rounded-full bg-gray-200"></span>
@@ -221,7 +200,7 @@
           { id: 'd5', label: 'Nível de combustível anotado' }
       ]},
       { id: 'secao_2', title: 'Lataria e pintura', items: [
-          { id: 'l1', label: 'Avarias mapeadas e fotografadas (riscos, amassados, trincas)' },
+          { id: 'l1', label: 'Avarias mapeadas e fotografadas' },
           { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
           { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
           { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
@@ -258,16 +237,27 @@
     ];
 
     // ==========================================
-    // ESTADOS
+    // SISTEMA DE SALVAMENTO (LOCALSTORAGE)
     // ==========================================
-    let vehicleData = {}; 
-    let checkedItems = {}; 
+    // Tenta carregar os dados salvos no navegador. Se não tiver, começa vazio.
+    let vehicleData = JSON.parse(localStorage.getItem('vistoria_vehicleData')) || {}; 
+    let checkedItems = JSON.parse(localStorage.getItem('vistoria_checkedItems')) || {}; 
+    let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
+    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
+
     let selectedDamageType = 'risco'; 
-    let marks = []; 
-    let currentPhotoView = 'frente'; // Saber qual imagem estamos tirando foto
+    let currentPhotoView = 'frente'; 
+
+    // Função que salva tudo no navegador
+    function saveData() {
+      localStorage.setItem('vistoria_vehicleData', JSON.stringify(vehicleData));
+      localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
+      localStorage.setItem('vistoria_marks', JSON.stringify(marks));
+      localStorage.setItem('vistoria_photos', JSON.stringify(photos));
+    }
 
     // ==========================================
-    // 1. IDENTIFICAÇÃO E CHECKLIST
+    // RENDERIZAÇÃO DO FORMULÁRIO E CHECKLIST
     // ==========================================
     function renderVehicleFields() {
       const container = document.getElementById('vehicle-fields-container');
@@ -275,7 +265,7 @@
         <label class="block">
           <span class="mb-1.5 block text-[10px] uppercase tracking-[0.16em] text-gray-500">${campo.label}</span>
           <input type="${campo.type || 'text'}" value="${vehicleData[campo.key] || ''}" placeholder="${campo.placeholder || ''}"
-            oninput="vehicleData['${campo.key}'] = this.value"
+            oninput="vehicleData['${campo.key}'] = this.value; saveData();"
             class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200" />
         </label>
       `).join('');
@@ -311,32 +301,41 @@
       }).join('');
     }
 
-    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; renderChecklist(); };
+    window.toggleItem = (id) => { 
+      checkedItems[id] = !checkedItems[id]; 
+      saveData(); // Salva no navegador
+      renderChecklist(); 
+    };
+    
     window.toggleAll = (secId) => { 
       const sec = checklistData.find(s => s.id === secId);
       const all = sec.items.every(i => checkedItems[i.id]);
       sec.items.forEach(i => checkedItems[i.id] = !all);
+      saveData();
       renderChecklist();
     };
 
     // ==========================================
-    // 2. MAPA DE AVARIAS (CÂMERA POR VISTA)
+    // CÂMERA E MAPA
     // ==========================================
     const mapContainer = document.getElementById('damage-map');
     const paginationDots = document.querySelectorAll('#map-pagination span');
     
-    // Abre a câmera guardando qual vista está ativa
     window.triggerCamera = (viewName) => {
       currentPhotoView = viewName;
       document.getElementById('camera-input').click();
     };
 
-    // Processa a foto tirada
     window.handleImageUpload = function(event) {
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
+          // Salva a imagem no estado e no localStorage
+          photos[currentPhotoView] = e.target.result;
+          saveData();
+          
+          // Atualiza a tela
           const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
           if(slide) {
             slide.querySelector('.photo-img').src = e.target.result;
@@ -345,10 +344,9 @@
         };
         reader.readAsDataURL(file);
       }
-      event.target.value = ''; // Limpa o input para permitir tirar outra foto
+      event.target.value = ''; 
     };
 
-    // Atualiza a paginação ao deslizar
     mapContainer.addEventListener('scroll', () => {
       const scrollLeft = mapContainer.scrollLeft;
       const width = mapContainer.offsetWidth;
@@ -361,12 +359,9 @@
       });
     });
 
-    // Adicionar marcador na foto
     document.querySelectorAll('.map-slide').forEach(slide => {
       slide.addEventListener('click', (event) => {
-        // Ignora o clique se estiver clicando no botão de tirar foto
         if(event.target.closest('.photo-placeholder')) return;
-        // Ignora se não tiver foto ainda
         if(!slide.classList.contains('has-photo')) return;
 
         const rect = slide.getBoundingClientRect();
@@ -380,6 +375,7 @@
           type: selectedDamageType,
           view: slide.getAttribute('data-view')
         });
+        saveData(); // Salva a nova marcação
         renderAllDamage();
       });
     });
@@ -395,6 +391,17 @@
           ${tipo.label}
         </button>
       `).join('');
+    }
+
+    // Carrega as fotos salvas ao abrir o app
+    function loadSavedPhotos() {
+      document.querySelectorAll('.map-slide').forEach(slide => {
+        const view = slide.getAttribute('data-view');
+        if (photos[view]) {
+          slide.querySelector('.photo-img').src = photos[view];
+          slide.classList.add('has-photo');
+        }
+      });
     }
 
     function renderMarks() {
@@ -450,11 +457,16 @@
 
     window.updateMarkType = (id, newType) => {
       const mark = marks.find(m => m.id === id);
-      if (mark) { mark.type = newType; renderAllDamage(); }
+      if (mark) { 
+        mark.type = newType; 
+        saveData();
+        renderAllDamage(); 
+      }
     };
 
     window.removeMark = (id) => {
       marks = marks.filter(m => m.id !== id);
+      saveData();
       renderAllDamage();
     };
 
@@ -467,6 +479,7 @@
     renderVehicleFields();
     renderChecklist();
     renderDamageButtons();
+    loadSavedPhotos(); // Carrega fotos se existirem
     renderAllDamage();
 
   </script>

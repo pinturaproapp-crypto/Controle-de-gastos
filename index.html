@@ -2,113 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Checklist de Avarias - App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist de Vistoria</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Configurações do Tema Escuro */
-    body {
-      background-color: #121212;
-      color: #e5e7eb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding-bottom: 90px; /* Espaço para o menu inferior */
-    }
-    
-    /* Inputs do Tema Escuro */
-    .input-dark {
-      background-color: #000000;
-      border: 1px solid #333;
-      color: #fff;
-      border-radius: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      width: 100%;
-      font-size: 0.875rem;
-    }
-    .input-dark:focus { outline: none; border-color: #555; }
-    .input-dark::placeholder { color: #555; }
-    
-    /* Botões de Combustível e Pneus */
-    .btn-toggle {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      color: #9ca3af;
-      padding: 0.4rem 0.6rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-toggle.active {
-      background-color: #333;
-      color: #fff;
-      border-color: #555;
-    }
-    
-    /* Legenda de Avarias (1 a 6) */
-    .legend-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.25rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #000;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* Abas Externo / Interno */
-    .tab-btn {
-      flex: 1;
-      text-align: center;
-      padding: 0.75rem;
-      font-weight: 600;
-      color: #6b7280;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background-color: #e5e7eb;
-      color: #000;
-    }
-
-    /* Item do Checklist na parte de baixo */
-    .check-item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #333;
-    }
-    
-    /* Botões numerados (1 a 6) da linha */
-    .num-btn {
-      width: 2rem;
-      height: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 0.4rem;
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.875rem;
-      margin-left: 0.25rem;
-    }
-
-    /* ===== ESTILOS DO MAPA (CÂMERA) ===== */
+    /* Estilos do Mapa (Câmera) */
     .map-container {
       position: relative;
       aspect-ratio: 4 / 3; 
       width: 100%;
       overflow: hidden;
       border-radius: 0.5rem;
-      border: 1px solid #333;
-      background-color: #1e1e1e;
+      border: 1px solid #e5e7eb;
+      background-color: #f9fafb;
       overflow-x: auto; 
       scroll-snap-type: x mandatory;
       display: flex;
@@ -128,21 +35,15 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #6b7280;
+      color: #9ca3af;
       width: 100%;
       height: 100%;
-      background-color: #1e1e1e;
+      background-color: #f3f4f6;
     }
-    .photo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-    }
+    .photo-img { width: 100%; height: 100%; object-fit: cover; display: none; }
     .has-photo .photo-placeholder { display: none; }
     .has-photo .photo-img { display: block; }
     
-    /* Marcador no Mapa */
     .marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -156,168 +57,177 @@
       font-size: 11px;
       font-weight: 600;
       background-color: white;
-      color: #000;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
       pointer-events: none;
       font-family: monospace;
       z-index: 10;
     }
     .map-container::-webkit-scrollbar { display: none; }
     
-    /* Menu Inferior Fixo */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: #1e1e1e;
-      border-top: 1px solid #333;
-      display: flex;
-      justify-content: space-around;
-      padding: 0.75rem 0;
-      z-index: 50;
+    .damage-list-scroll {
+      max-height: 400px; 
+      overflow-y: auto;
+      padding-right: 4px;
     }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #6b7280;
-      font-size: 0.75rem;
+    .damage-list-scroll::-webkit-scrollbar { width: 6px; }
+    .damage-list-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .damage-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* Estilo do "Papel" do Checklist */
+    .paper-box {
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      font-size: 12px;
+    }
+    .paper-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .paper-input {
+      border: none;
+      border-bottom: 1px dashed #9ca3af;
+      outline: none;
+      width: 100%;
+      background: transparent;
+      font-size: 12px;
+      padding: 2px;
+    }
+    .fuel-btn {
+      border: 1px solid #9ca3af;
+      padding: 4px 8px;
+      font-size: 12px;
+      background: white;
+      margin-right: 2px;
+      cursor: pointer;
+    }
+    .fuel-btn.active {
+      background: #1f2937;
+      color: white;
     }
   </style>
 </head>
-<body>
+<body class="p-4 bg-gray-100 min-h-screen">
 
-  <!-- HEADER -->
-  <header class="flex items-center gap-4 p-4 border-b border-gray-800 bg-[#121212] sticky top-0 z-40">
-    <button class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white">
-      <i data-lucide="arrow-left" class="w-5 h-5"></i>
-    </button>
-    <h1 class="text-xl font-bold text-white">Checklist de Avarias</h1>
-  </header>
-
-  <main class="p-4 max-w-3xl mx-auto space-y-6">
+  <div class="max-w-3xl mx-auto p-4 bg-white shadow-lg space-y-6">
     
-    <!-- 1. DADOS DO VEÍCULO (ESTILO PRINT 1) -->
-    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <!-- Linha 1 -->
-        <div class="col-span-2 md:col-span-1">
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Nome do Cliente</label>
-          <input type="text" id="inp-cliente" class="input-dark" />
+    <!-- ========================================== -->
+    <!-- CABEÇALHO IDÊNTICO AO PAPEL                -->
+    <!-- ========================================== -->
+    <div>
+      <!-- Logo e Topo -->
+      <div class="flex flex-col sm:flex-row border border-gray-400">
+        <div class="sm:w-1/3 p-2 border-b sm:border-b-0 sm:border-r border-gray-400 flex items-center justify-center">
+          <span class="text-[10px] text-gray-500 uppercase text-center">Logo da sua empresa</span>
         </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">CPF</label>
-          <input type="text" id="inp-cpf" class="input-dark" placeholder="000.000.000-00" />
+        <div class="sm:w-2/3 p-2 space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs w-12">Número</span>
+            <input type="text" class="paper-input flex-1" value="1">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs w-12">Local</span>
+            <input type="text" class="paper-input flex-1">
+          </div>
         </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Telefone</label>
-          <input type="text" id="inp-telefone" class="input-dark" />
-        </div>
-        
-        <!-- Linha 2 -->
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Data Entrada</label>
-          <input type="date" id="inp-data" class="input-dark" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Nº OS</label>
-          <input type="text" id="inp-os" class="input-dark" value="1" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Veículo</label>
-          <input type="text" id="inp-veiculo" class="input-dark" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Placa</label>
-          <input type="text" id="inp-placa" class="input-dark" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Ano</label>
-          <input type="text" id="inp-ano" class="input-dark" placeholder="2021" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Cor</label>
-          <input type="text" id="inp-cor" class="input-dark" placeholder="Branco" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Km</label>
-          <input type="text" id="inp-km" class="input-dark" placeholder="00000" />
-        </div>
-        <div>
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Seguradora</label>
-          <input type="text" id="inp-seguradora" class="input-dark" placeholder="Opcional" />
-        </div>
-        
-        <!-- Endereço (linha inteira) -->
-        <div class="col-span-2 md:col-span-3">
-          <label class="block text-[10px] text-gray-400 uppercase font-bold mb-1">Endereço</label>
-          <input type="text" id="inp-endereco" class="input-dark" />
+        <div class="sm:w-1/3 p-2 border-t sm:border-t-0 sm:border-l border-gray-400 space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs w-12">Data</span>
+            <input type="date" class="paper-input flex-1">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs w-12">Horário</span>
+            <input type="time" class="paper-input flex-1">
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 2. COMBUSTÍVEL E PNEUS -->
-    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
-      <!-- Combustível -->
-      <label class="block text-[10px] text-gray-400 uppercase font-bold mb-2">Combustível</label>
-      <div class="flex flex-wrap gap-2 mb-4">
-        <button class="btn-toggle" onclick="selectFuel(this)">R</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">1/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">2/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">3/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">4/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">5/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">6/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">7/8</button>
-        <button class="btn-toggle" onclick="selectFuel(this)">Cheio</button>
+      <!-- Dados do Veículo -->
+      <div class="border-x border-b border-gray-400 p-2 space-y-2">
+        <h3 class="paper-title">Dados do veículo</h3>
+        
+        <div class="flex gap-2">
+          <span class="text-xs font-semibold w-16">Veículo:</span>
+          <input type="text" class="paper-input flex-1">
+          <span class="text-xs font-semibold w-10">Ano:</span>
+          <input type="text" class="paper-input w-20">
+          <span class="text-xs font-semibold w-14">Motor:</span>
+          <input type="text" class="paper-input flex-1">
+        </div>
+        <div class="flex gap-2">
+          <span class="text-xs font-semibold w-16">Km atual:</span>
+          <input type="text" class="paper-input flex-1">
+          <span class="text-xs font-semibold w-10">Placa:</span>
+          <input type="text" class="paper-input w-24">
+          <span class="text-xs font-semibold w-10">Cor:</span>
+          <input type="text" class="paper-input flex-1">
+        </div>
+
+        <!-- Combustível -->
+        <div class="pt-2">
+          <span class="text-xs font-semibold">Nível de combustível</span>
+          <div class="flex flex-wrap mt-1">
+            <button class="fuel-btn" onclick="setFuel(this)">R</button>
+            <button class="fuel-btn" onclick="setFuel(this)">1/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">2/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">3/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">4/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">5/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">6/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">7/8</button>
+            <button class="fuel-btn" onclick="setFuel(this)">8/8</button>
+          </div>
+        </div>
+
+        <!-- Legenda -->
+        <div class="pt-2 flex flex-wrap gap-4 text-[10px] font-bold">
+          <span>S - Sim, existente ou OK</span>
+          <span>I - Incompleto</span>
+          <span>N - Não existente</span>
+          <span>A - Avariado</span>
+        </div>
       </div>
-
+      
       <!-- Pneus -->
-      <label class="block text-[10px] text-gray-400 uppercase font-bold mb-2">Pneus</label>
-      <div class="grid grid-cols-4 gap-2 text-center">
+      <div class="border-x border-b border-gray-400 p-2 flex justify-between">
         <div>
-          <label class="block text-[10px] text-gray-500 mb-1">DE</label>
-          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+          <span class="text-xs font-semibold block mb-1">Pneus</span>
+          <div class="flex flex-col gap-1 text-xs">
+            <label><input type="checkbox" class="mr-1"> Diant. Esq.</label>
+            <label><input type="checkbox" class="mr-1"> Traz. Esq.</label>
+          </div>
         </div>
         <div>
-          <label class="block text-[10px] text-gray-500 mb-1">DD</label>
-          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+          <span class="text-xs font-semibold block mb-1">&nbsp;</span>
+          <div class="flex flex-col gap-1 text-xs">
+            <label><input type="checkbox" class="mr-1"> Diant. Dir.</label>
+            <label><input type="checkbox" class="mr-1"> Traz. Dir.</label>
+          </div>
         </div>
         <div>
-          <label class="block text-[10px] text-gray-500 mb-1">TE</label>
-          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+          <span class="text-xs font-semibold block mb-1">Calotas</span>
+          <div class="flex flex-col gap-1 text-xs">
+            <label><input type="checkbox" class="mr-1"> Diant. Esq.</label>
+            <label><input type="checkbox" class="mr-1"> Traz. Esq.</label>
+          </div>
         </div>
         <div>
-          <label class="block text-[10px] text-gray-500 mb-1">TD</label>
-          <select class="input-dark text-center"><option>-</option><option>Bom</option><option>Ruim</option></select>
+          <span class="text-xs font-semibold block mb-1">&nbsp;</span>
+          <div class="flex flex-col gap-1 text-xs">
+            <label><input type="checkbox" class="mr-1"> Diant. Dir.</label>
+            <label><input type="checkbox" class="mr-1"> Traz. Dir.</label>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 3. LEGENDA DE AVARIAS -->
-    <div class="flex flex-wrap gap-2 justify-center">
-      <button class="legend-btn bg-[#F59E0B]">1 Arranhado</button>
-      <button class="legend-btn bg-[#F97316]">2 Amassado</button>
-      <button class="legend-btn bg-[#EAB308]">3 Trincado</button>
-      <button class="legend-btn bg-[#EF4444] text-white">4 Quebrado</button>
-      <button class="legend-btn bg-[#DC2626] text-white">5 Falta</button>
-      <button class="legend-btn bg-[#10B981] text-white">6 Bom</button>
-    </div>
-
-    <!-- 4. ABAS (EXTERNO / INTERNO) -->
-    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-1 flex mb-2">
-      <button class="tab-btn active" onclick="switchTab('externo', this)">Externo <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
-      <button class="tab-btn" onclick="switchTab('interno', this)">Interno <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
-      <button class="tab-btn" onclick="switchTab('resumo', this)">Resumo <span class="text-xs font-normal text-gray-500 ml-1">0</span></button>
-    </div>
-
-    <!-- 5. MAPA DE AVARIAS (CÂMERA) -->
-    <div class="bg-[#1e1e1e] border border-[#333] rounded-xl p-4">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-sm font-bold text-white">Mapeamento Fotográfico</h2>
-        <span class="text-[10px] uppercase text-gray-500">Deslize para mudar</span>
-      </div>
+    <!-- ========================================== -->
+    <!-- MAPA DE AVARIAS (CÂMERA)                   -->
+    <!-- ========================================== -->
+    <div class="border border-gray-400 p-2">
+      <h3 class="paper-title mb-2">Registro Fotográfico de Avarias</h3>
+      
+      <div class="mb-2 flex flex-wrap gap-1.5" id="damage-buttons"></div>
 
       <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
       
@@ -325,8 +235,8 @@
         <!-- Frente -->
         <div class="map-slide" data-view="frente">
           <div class="photo-placeholder" onclick="triggerCamera('frente')">
-            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
-            <p class="text-sm font-medium">Tirar foto da Frente</p>
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Frente</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Frente">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
@@ -334,8 +244,8 @@
         <!-- Lateral -->
         <div class="map-slide" data-view="lateral">
           <div class="photo-placeholder" onclick="triggerCamera('lateral')">
-            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
-            <p class="text-sm font-medium">Tirar foto da Lateral</p>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Lateral</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Lateral">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
@@ -343,8 +253,8 @@
         <!-- Traseira -->
         <div class="map-slide" data-view="traseira">
           <div class="photo-placeholder" onclick="triggerCamera('traseira')">
-            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
-            <p class="text-sm font-medium">Tirar foto da Traseira</p>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Traseira</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Traseira">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
@@ -352,167 +262,169 @@
         <!-- Topo -->
         <div class="map-slide" data-view="topo">
           <div class="photo-placeholder" onclick="triggerCamera('topo')">
-            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
-            <p class="text-sm font-medium">Tirar foto de Cima</p>
+             <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto de Cima</p>
           </div>
           <img class="photo-img pointer-events-none" alt="Topo">
           <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
       </div>
 
-      <!-- Paginação -->
       <div class="mt-3 flex justify-center items-center gap-2" id="map-pagination">
-        <span class="w-2 h-2 rounded-full bg-white"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
-        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-800"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
       </div>
+      <p class="mt-1 text-center text-[11px] text-gray-500">Frente · Lateral · Traseira · Vista Superior</p>
     </div>
 
-    <!-- 6. LISTA DE ITENS DO CHECKLIST (EXTERNO/INTERNO) -->
-    <div id="aba-externo" class="tab-content block">
-      <!-- Para-choque Dianteiro -->
-      <div class="check-item-row">
-        <span class="text-sm font-medium">Para-choque Dianteiro</span>
-        <div class="flex">
-          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
-          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
-          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
-          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
-          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
-          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
-        </div>
-      </div>
-      
-      <!-- Para-choque Traseiro -->
-      <div class="check-item-row">
-        <span class="text-sm font-medium">Para-choque Traseiro</span>
-        <div class="flex">
-          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
-          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
-          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
-          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
-          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
-          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
-        </div>
-      </div>
+    <!-- ========================================== -->
+    <!-- CHECKLIST ORIGINAL COMPLETO                -->
+    <!-- ========================================== -->
+    <div id="checklist-sections-container" class="space-y-4"></div>
 
-      <!-- Grade Dianteira -->
-      <div class="check-item-row">
-        <span class="text-sm font-medium">Grade Dianteira</span>
-        <div class="flex">
-          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
-          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
-          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
-          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
-          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
-          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
-        </div>
-      </div>
+    <!-- LISTA DE AVARIAS MARCADAS -->
+    <div class="border border-gray-400 p-2">
+      <h3 class="paper-title">Avarias Registradas</h3>
+      <div id="damage-list-container" class="damage-list-scroll"></div>
     </div>
 
-    <div id="aba-interno" class="tab-content hidden">
-      <!-- Exemplo de item interno -->
-      <div class="check-item-row">
-        <span class="text-sm font-medium">Bancos</span>
-        <div class="flex">
-          <button class="num-btn" onclick="markItem(this, 1, '#F59E0B')">1</button>
-          <button class="num-btn" onclick="markItem(this, 2, '#F97316')">2</button>
-          <button class="num-btn" onclick="markItem(this, 3, '#EAB308')">3</button>
-          <button class="num-btn" onclick="markItem(this, 4, '#EF4444')">4</button>
-          <button class="num-btn" onclick="markItem(this, 5, '#DC2626')">5</button>
-          <button class="num-btn" onclick="markItem(this, 6, '#10B981')">6</button>
-        </div>
-      </div>
+    <!-- Observações -->
+    <div class="border border-gray-400 p-2">
+      <h3 class="paper-title">Observações</h3>
+      <textarea class="w-full border border-gray-300 p-2 text-sm h-20" placeholder="Digite aqui..."></textarea>
     </div>
-
-  </main>
-
-  <!-- 7. MENU INFERIOR FIXO -->
-  <nav class="bottom-nav">
-    <a href="#" class="nav-item text-white">
-      <i data-lucide="home" class="w-6 h-6 mb-1"></i>
-      <span>Início</span>
-    </a>
-    <a href="#" class="nav-item hover:text-white">
-      <i data-lucide="star" class="w-6 h-6 mb-1"></i>
-      <span>Favoritos</span>
-    </a>
-    <a href="#" class="nav-item hover:text-white">
-      <i data-lucide="history" class="w-6 h-6 mb-1"></i>
-      <span>Histórico</span>
-    </a>
-    <a href="#" class="nav-item hover:text-white">
-      <i data-lucide="sliders" class="w-6 h-6 mb-1"></i>
-      <span>Ajustes</span>
-    </a>
-  </nav>
+    
+  </div>
 
   <script>
-    // Inicializa os Ícones
-    lucide.createIcons();
-
-    // Lógica do Combustível
-    window.selectFuel = function(btn) {
-      const parent = btn.parentElement;
-      parent.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    };
-
-    // Lógica das Abas
-    window.switchTab = function(tabName, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-      document.getElementById(`aba-${tabName}`).classList.remove('hidden');
-    };
-
-    // Lógica dos Botões Numerados (1 a 6)
-    window.markItem = function(btn, num, color) {
-      // Limpa a seleção anterior do grupo
-      const parent = btn.parentElement;
-      parent.querySelectorAll('.num-btn').forEach(b => {
-        b.style.backgroundColor = '#1e1e1e';
-        b.style.color = '#fff';
-        b.style.borderColor = '#333';
-      });
-      
-      // Aplica a nova cor
-      btn.style.backgroundColor = color;
-      btn.style.color = '#000';
-      btn.style.borderColor = color;
-    };
-
     // ==========================================
-    // LÓGICA DO MAPA E CÂMERA (Mantida)
+    // DADOS E CONFIGURAÇÕES
     // ==========================================
-    const mapContainer = document.getElementById('damage-map');
     const damageTypes = [
-      { key: "arranhado", label: "Arranhado", color: "#F59E0B" },
-      { key: "amassado", label: "Amassado", color: "#F97316" },
-      { key: "trincado", label: "Trincado", color: "#EAB308" },
-      { key: "quebrado", label: "Quebrado", color: "#EF4444" },
-      { key: "falta", label: "Falta", color: "#DC2626" },
-      { key: "bom", label: "Bom", color: "#10B981" }
+      { key: "risco", label: "Risco", color: "#B4791F" },
+      { key: "amassado", label: "Amassado", color: "#2F6F8F" },
+      { key: "trinca", label: "Trinca", color: "#7A4FA3" },
+      { key: "quebrado", label: "Quebrado", color: "#B3402F" },
+      { key: "ferrugem", label: "Ferrugem", color: "#8A5A2B" }
     ];
     const getTypeColor = (key) => (damageTypes.find(type => type.key === key) || damageTypes[0]).color;
 
-    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
+    // SUAS 6 SEÇÕES ORIGINAIS COMPLETAS DO ARQUIVO vistoriaEntrada.js
+    const checklistData = [
+      { id: 'secao_1', title: 'Documentação e identificação', items: [
+          { id: 'd1', label: 'Placa e chassi conferidos com o documento' },
+          { id: 'd2', label: 'CRLV ou autorização do proprietário conferido' },
+          { id: 'd3', label: 'Chave, controle e manual recuperado' },
+          { id: 'd4', label: 'Quilometragem registrada no ato da entrega' },
+          { id: 'd5', label: 'Nível de combustível anotado' }
+      ]},
+      { id: 'secao_2', title: 'Lataria e pintura', items: [
+          { id: 'l1', label: 'Avarias mapeadas e fotografadas (riscos, amassados, trincas)' },
+          { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
+          { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
+          { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
+          { id: 'l5', label: 'Retrovisores e maçanetas conferidas' },
+          { id: 'l6', label: 'Pontos de ferrugem e pintura descascados registrados' }
+      ]},
+      { id: 'secao_3', title: 'Vidros, rodas e iluminação', items: [
+          { id: 'v1', label: 'Para-brisa e vidros laterais sem trincas' },
+          { id: 'v2', label: 'Palhetas de limpadores conferidas' },
+          { id: 'v3', label: 'Pneus, rodas e calotas conferidas' },
+          { id: 'v4', label: 'Estepe, macaco e chave de roda presentes' },
+          { id: 'v5', label: 'Faróis, lanternas e luz de freio funcionando' }
+      ]},
+      { id: 'secao_4', title: 'Interior e acessórios', items: [
+          { id: 'i1', label: 'Estofamento, forrações e painéis conferidos' },
+          { id: 'i2', label: 'Tapetes e acabamentos internos presentes' },
+          { id: 'i3', label: 'Itens pessoais retirados e devoluções ao cliente' },
+          { id: 'i4', label: 'Documentos e objetos de valor retirados do veículo' }
+      ]},
+      { id: 'secao_5', title: 'Mecânica e elétrica', items: [
+          { id: 'm1', label: 'Nível de óleo, água e fluidos conferidos' },
+          { id: 'm2', label: 'Bateria e terminais em ordem' },
+          { id: 'm3', label: 'Luzes de painel verificados' },
+          { id: 'm4', label: 'Ar condicionado e ventilação testados' },
+          { id: 'm5', label: 'Rádio e multimídia testados' },
+          { id: 'm6', label: 'Vidros elétricos e trabalhos testados' }
+      ]},
+      { id: 'secao_6', title: 'Fechamento da entrada', items: [
+          { id: 'f1', label: 'Cliente ciente das avarias registradas' },
+          { id: 'f2', label: 'Orçamento apresentado e aprovado' },
+          { id: 'f3', label: 'Fotos anexadas ao processo do veículo' },
+          { id: 'f4', label: 'Prazo estimado de entrega combinado' }
+      ]}
+    ];
+
+    // ==========================================
+    // MEMÓRIA E ESTADOS
+    // ==========================================
+    let checkedItems = JSON.parse(localStorage.getItem('vistoria_checkedItems')) || {}; 
     let marks = JSON.parse(localStorage.getItem('vistoria_marks')) || []; 
-    let currentPhotoView = 'frente';
-    let selectedDamageType = 'arranhado'; // Padrão
+    let photos = JSON.parse(localStorage.getItem('vistoria_photos')) || { frente: null, lateral: null, traseira: null, topo: null };
+    let selectedDamageType = 'risco'; 
+    let currentPhotoView = 'frente'; 
 
-    // Como agora temos 6 tipos de danos, vamos simular a seleção usando o primeiro botão da lista de legenda
-    document.querySelectorAll('.legend-btn').forEach((btn, idx) => {
-      btn.onclick = () => {
-        selectedDamageType = damageTypes[idx].key;
-        // Adiciona um anel de destaque no botão selecionado
-        document.querySelectorAll('.legend-btn').forEach(b => b.style.outline = 'none');
-        btn.style.outline = '2px solid white';
-      };
-    });
+    function saveData() {
+      localStorage.setItem('vistoria_checkedItems', JSON.stringify(checkedItems));
+      localStorage.setItem('vistoria_marks', JSON.stringify(marks));
+      localStorage.setItem('vistoria_photos', JSON.stringify(photos));
+    }
 
+    // Lógica do Combustível
+    window.setFuel = function(btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+
+    // ==========================================
+    // RENDERIZAÇÃO DO CHECKLIST COMPLETO
+    // ==========================================
+    function renderChecklist() {
+      const container = document.getElementById('checklist-sections-container');
+      container.innerHTML = checklistData.map((section, idx) => {
+        const doneCount = section.items.filter(i => checkedItems[i.id]).length;
+        const allDone = doneCount === section.items.length;
+        return `
+          <div class="border border-gray-400 p-2">
+            <div class="mb-2 flex items-center justify-between border-b border-gray-300 pb-1">
+              <h3 class="font-bold text-sm text-gray-900 uppercase">
+                ${String(idx + 1).padStart(2, "0")} - ${section.title}
+              </h3>
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] text-gray-500">${doneCount} / ${section.items.length}</span>
+                <button onclick="toggleAll('${section.id}')" class="text-[10px] uppercase text-gray-500 hover:text-gray-900 underline">${allDone ? 'Limpar' : 'Marcar todos'}</button>
+              </div>
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">${section.items.map(item => `
+              <li>
+                <label class="flex cursor-pointer items-start gap-2 py-1">
+                  <input type="checkbox" ${checkedItems[item.id] ? 'checked' : ''} onchange="toggleItem('${item.id}')" class="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-gray-900" />
+                  <span class="text-xs ${checkedItems[item.id] ? 'text-gray-400 line-through' : 'text-gray-800'}">${item.label}</span>
+                </label>
+              </li>
+            `).join('')}</ul>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; saveData(); renderChecklist(); };
+    window.toggleAll = (secId) => { 
+      const sec = checklistData.find(s => s.id === secId);
+      const all = sec.items.every(i => checkedItems[i.id]);
+      sec.items.forEach(i => checkedItems[i.id] = !all);
+      saveData();
+      renderChecklist();
+    };
+
+    // ==========================================
+    // LÓGICA DA CÂMERA E MAPA
+    // ==========================================
+    const mapContainer = document.getElementById('damage-map');
+    
     window.triggerCamera = (viewName) => {
       currentPhotoView = viewName;
       document.getElementById('camera-input').click();
@@ -528,14 +440,12 @@
         img.onload = function() {
           const canvas = document.createElement('canvas');
           const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
           let width = img.width;
           let height = img.height;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-          } else {
-            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
           }
 
           canvas.width = width;
@@ -544,9 +454,9 @@
           ctx.drawImage(img, 0, 0, width, height);
 
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          photos[currentPhotoView] = compressedBase64;
           
-          localStorage.setItem('vistoria_photos', JSON.stringify(photos));
+          photos[currentPhotoView] = compressedBase64;
+          saveData();
 
           const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
           if(slide) {
@@ -569,7 +479,37 @@
       }
     });
 
-    // Adiciona marcador no mapa
+    function renderDamageButtons() {
+      const container = document.getElementById('damage-buttons');
+      container.innerHTML = damageTypes.map(tipo => `
+        <button type="button" onclick="selectedDamageType='${tipo.key}'; renderDamageButtons();"
+          class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+            selectedDamageType === tipo.key ? 'border-gray-400 bg-gray-100 text-gray-900' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+          }">
+          <span class="h-2 w-2 rounded-full" style="background-color: ${tipo.color};"></span>
+          ${tipo.label}
+        </button>
+      `).join('');
+    }
+
+    function renderMarks() {
+      document.querySelectorAll('.markers-layer').forEach(layer => layer.innerHTML = '');
+      
+      marks.forEach((mark, index) => {
+        const slide = document.querySelector(`.map-slide[data-view="${mark.view}"]`);
+        if (slide) {
+          const span = document.createElement('span');
+          span.className = 'marker';
+          span.style.left = `${mark.x}%`;
+          span.style.top = `${mark.y}%`;
+          span.style.borderColor = getTypeColor(mark.type);
+          span.style.color = getTypeColor(mark.type);
+          span.textContent = index + 1;
+          slide.querySelector('.markers-layer').appendChild(span);
+        }
+      });
+    }
+
     document.querySelectorAll('.map-slide').forEach(slide => {
       slide.addEventListener('click', (event) => {
         if(event.target.closest('.photo-placeholder')) return;
@@ -586,43 +526,63 @@
           type: selectedDamageType,
           view: slide.getAttribute('data-view')
         });
-        
-        localStorage.setItem('vistoria_marks', JSON.stringify(marks));
+        saveData();
         renderMarks();
+        renderDamageList();
       });
     });
 
-    function renderMarks() {
-      document.querySelectorAll('.markers-layer').forEach(layer => layer.innerHTML = '');
-      
+    function renderDamageList() {
+      const listContainer = document.getElementById('damage-list-container');
+      listContainer.innerHTML = '';
+
+      if (marks.length === 0) {
+        listContainer.innerHTML = `<p class="mt-2 text-center text-[11px] text-gray-500">Nenhuma avaria marcada.</p>`;
+        return;
+      }
+
+      const ul = document.createElement('ul');
+      ul.className = "space-y-1";
+
       marks.forEach((mark, index) => {
-        const slide = document.querySelector(`.map-slide[data-view="${mark.view}"]`);
-        if (slide) {
-          const span = document.createElement('span');
-          span.className = 'marker';
-          span.style.left = `${mark.x}%`;
-          span.style.top = `${mark.y}%`;
-          span.style.backgroundColor = getTypeColor(mark.type);
-          span.style.color = (mark.type === 'bom') ? '#fff' : '#000'; // Texto branco no botão "Bom"
-          span.textContent = index + 1;
-          slide.querySelector('.markers-layer').appendChild(span);
-        }
+        const li = document.createElement('li');
+        li.className = "flex items-center gap-2 border-b border-gray-200 py-1";
+
+        const options = damageTypes.map(tipo => `<option value="${tipo.key}" ${mark.type === tipo.key ? 'selected' : ''}>${tipo.label}</option>`).join('');
+        const viewNames = { 'frente': 'Frente', 'lateral': 'Lateral', 'traseira': 'Traseira', 'topo': 'Topo' };
+
+        li.innerHTML = `
+          <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold" 
+                style="border-color: ${getTypeColor(mark.type)}; color: ${getTypeColor(mark.type)};">${index + 1}</span>
+          <span class="flex-1 text-xs">Avaria ${index + 1} <span class="text-gray-400 text-[9px]">(${viewNames[mark.view]})</span></span>
+          <select class="rounded border border-gray-300 px-1 py-0.5 text-[11px]" onchange="updateMarkType('${mark.id}', this.value)">${options}</select>
+          <button type="button" onclick="removeMark('${mark.id}')" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="h-3 w-3"></i></button>
+        `;
+        ul.appendChild(li);
       });
+
+      listContainer.appendChild(ul);
+      lucide.createIcons(); 
     }
 
-    // Paginação Scroll
-    mapContainer.addEventListener('scroll', () => {
-      const scrollLeft = mapContainer.scrollLeft;
-      const width = mapContainer.offsetWidth;
-      const activeIndex = Math.round(scrollLeft / width);
-      
-      document.querySelectorAll('#map-pagination span').forEach((dot, idx) => {
-        dot.className = idx === activeIndex ? "w-2 h-2 rounded-full bg-white transition-colors" : "w-2 h-2 rounded-full bg-gray-600 transition-colors";
-      });
-    });
+    window.updateMarkType = (id, newType) => {
+      const mark = marks.find(m => m.id === id);
+      if (mark) { mark.type = newType; saveData(); renderMarks(); renderDamageList(); }
+    };
 
-    // Inicializa marcadores salvos
+    window.removeMark = (id) => {
+      marks = marks.filter(m => m.id !== id);
+      saveData();
+      renderMarks();
+      renderDamageList();
+    };
+
+    // Inicialização
+    renderChecklist();
+    renderDamageButtons();
     renderMarks();
+    renderDamageList();
+
   </script>
 </body>
 </html>

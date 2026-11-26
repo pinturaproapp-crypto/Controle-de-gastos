@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vistoria com Foto do Veículo</title>
+  <title>Vistoria Completa com Fotos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -11,32 +11,52 @@
       position: relative;
       aspect-ratio: 1 / 1; 
       width: 100%;
-      cursor: crosshair;
       overflow: hidden;
       border-radius: 0.5rem;
-      border: 2px dashed #e5e7eb; /* Borda tracejada para indicar área de upload */
+      border: 1px solid #e5e7eb;
       background-color: #f9fafb;
+      /* Carrossel */
+      overflow-x: auto; 
+      scroll-snap-type: x mandatory;
+      display: flex;
+    }
+    .map-slide {
+      min-width: 100%;
+      height: 100%;
+      scroll-snap-align: center;
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .map-container.has-image {
-      border: 1px solid #e5e7eb;
-      background-color: #000; /* Fundo preto para fotos */
-    }
-    .map-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Preenche o quadrado sem distorcer */
-      display: none;
-    }
-    .map-container.has-image .map-image {
-      display: block;
-    }
-    .map-container.has-image .upload-placeholder {
-      display: none;
+      cursor: crosshair;
     }
     
+    /* Placeholder de Foto (Onde clica para tirar foto) */
+    .photo-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      width: 100%;
+      height: 100%;
+      background-color: #f3f4f6;
+      transition: background 0.2s;
+    }
+    .photo-placeholder:hover { background-color: #e5e7eb; }
+
+    /* A Imagem tirada */
+    .photo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    /* Se tiver imagem carregada, esconde o placeholder e mostra a imagem */
+    .has-photo .photo-placeholder { display: none; }
+    .has-photo .photo-img { display: block; }
+
     .marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -57,6 +77,11 @@
       z-index: 10;
     }
 
+    /* Barra de rolagem do carrossel */
+    .map-container::-webkit-scrollbar { display: none; }
+    .map-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Scroll da lista de avarias */
     .damage-list-scroll {
       max-height: 400px; 
       overflow-y: auto;
@@ -71,7 +96,7 @@
 
   <div class="max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-sm space-y-8">
     
-    <!-- (Checklist e Formulário mantidos iguais para focar no mapa) -->
+    <!-- 1. IDENTIFICAÇÃO -->
     <div>
       <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="font-bold text-xl text-gray-900">Identifique-se</h2>
@@ -81,51 +106,82 @@
     </div>
 
     <hr class="border-gray-200">
+
+    <!-- 2. CHECKLIST COMPLETO -->
     <div id="checklist-sections-container" class="space-y-6"></div>
+
     <hr class="border-gray-200">
 
-    <!-- MAPA DE AVARIAS COM FOTO -->
+    <!-- 3. MAPA DE AVARIAS (4 Fotos Independentes) -->
     <div>
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="font-bold text-xl text-gray-900">Mapa de avarias (Foto Real)</h2>
-        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Toque na foto para marcar</span>
+        <h2 class="font-bold text-xl text-gray-900">Mapa de avarias</h2>
+        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Deslize e tire fotos</span>
       </div>
 
       <div class="mb-3 flex flex-wrap gap-1.5" id="damage-buttons"></div>
 
-      <!-- Input de Arquivo Escondido (acionado pelo botão no mapa) -->
+      <!-- Input de Câmera Global -->
       <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
       
-      <!-- Container do Mapa -->
+      <!-- Carrossel de 4 Fotos -->
       <div class="map-container" id="damage-map">
         
-        <!-- Placeholder de Upload (Some quando a foto é carregada) -->
-        <div class="upload-placeholder flex flex-col items-center justify-center text-gray-400 p-6 text-center cursor-pointer" onclick="document.getElementById('camera-input').click()">
-          <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          <p class="font-medium text-sm">Tirar foto ou Anexar imagem</p>
-          <p class="text-xs mt-1">Toque aqui para abrir a câmera</p>
+        <!-- Vista 1: Frente -->
+        <div class="map-slide" data-view="frente">
+          <div class="photo-placeholder" onclick="triggerCamera('frente')">
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Frente</p>
+          </div>
+          <img class="photo-img pointer-events-none" alt="Frente">
+          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
         </div>
 
-        <!-- A Imagem que será exibida -->
-        <img id="uploaded-image" class="map-image pointer-events-none" alt="Foto do veículo">
-        
-        <!-- Camada dos Marcadores -->
-        <div class="pointer-events-none absolute inset-0 markers-layer"></div>
+        <!-- Vista 2: Lateral -->
+        <div class="map-slide" data-view="lateral">
+          <div class="photo-placeholder" onclick="triggerCamera('lateral')">
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Lateral</p>
+          </div>
+          <img class="photo-img pointer-events-none" alt="Lateral">
+          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
+        </div>
+
+        <!-- Vista 3: Traseira -->
+        <div class="map-slide" data-view="traseira">
+          <div class="photo-placeholder" onclick="triggerCamera('traseira')">
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto da Traseira</p>
+          </div>
+          <img class="photo-img pointer-events-none" alt="Traseira">
+          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
+        </div>
+
+        <!-- Vista 4: Topo -->
+        <div class="map-slide" data-view="topo">
+          <div class="photo-placeholder" onclick="triggerCamera('topo')">
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p class="font-medium text-sm">Tirar foto de Cima</p>
+          </div>
+          <img class="photo-img pointer-events-none" alt="Topo">
+          <div class="pointer-events-none absolute inset-0 markers-layer"></div>
+        </div>
+
       </div>
 
-      <!-- Botão para trocar a foto (só aparece se já tiver foto) -->
-      <div class="mt-2 text-center hidden" id="change-photo-container">
-        <button onclick="document.getElementById('camera-input').click()" class="text-[11px] text-gray-500 hover:text-gray-900 font-medium underline">
-          Trocar foto
-        </button>
+      <!-- Paginação e Legenda -->
+      <div class="mt-3 flex justify-center items-center gap-2" id="map-pagination">
+        <span class="w-2 h-2 rounded-full bg-gray-800"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
+        <span class="w-2 h-2 rounded-full bg-gray-200"></span>
       </div>
-      
-      <p class="mt-2 text-center text-[11px] text-gray-500">Aponte os danos com precisão na foto real</p>
+      <p class="mt-2 text-center text-[11px] text-gray-500">Frente · Lateral · Traseira · Vista Superior</p>
     </div>
 
     <hr class="border-gray-200">
 
-    <!-- LISTA DE AVARIAS -->
+    <!-- 4. LISTA DE AVARIAS -->
     <div>
       <div id="damage-list-container" class="damage-list-scroll"></div>
     </div>
@@ -134,7 +190,7 @@
 
   <script>
     // ==========================================
-    // DADOS INICIAIS (Mantidos)
+    // DADOS GERAIS
     // ==========================================
     const damageTypes = [
       { key: "risco", label: "Risco", color: "#B4791F" },
@@ -147,52 +203,187 @@
 
     const campos = [
       { key: "placa", label: "Placa", placeholder: "ABC-1D23" },
-      { key: "modelo", label: "Veículo", placeholder: "Gol 1.6" },
-      { key: "cliente", label: "Cliente", placeholder: "Nome" },
-      { key: "data", label: "Data", type: "date" }
+      { key: "modelo", label: "Veículo / modelo", placeholder: "Gol 1.6 - 2019" },
+      { key: "cor", label: "Cor", placeholder: "Prata" },
+      { key: "cliente", label: "Cliente", placeholder: "Nome do cliente" },
+      { key: "data", label: "Data", type: "date" },
+      { key: "km", label: "Quilometragem", placeholder: "84.320" },
+      { key: "responsavel", label: "Responsável", placeholder: "Quem conferiu" },
+      { key: "os", label: "Ordem de serviço", placeholder: "OS 1042" },
     ];
 
-    // (Checklist resumido no código para focar no mapa)
     const checklistData = [
-      { id: 'secao_1', title: 'Documentação', items: [{ id: 'd1', label: 'CRLV em dia' }, { id: 'd2', label: 'Chave e manual' }] },
-      { id: 'secao_2', title: 'Lataria', items: [{ id: 'l1', label: 'Para-choques' }, { id: 'l2', label: 'Capô e portas' }] }
+      { id: 'secao_1', title: 'Documentação e identificação', items: [
+          { id: 'd1', label: 'Placa e chassi conferidos com o documento' },
+          { id: 'd2', label: 'CRLV ou autorização do proprietário conferido' },
+          { id: 'd3', label: 'Chave, controle e manual recuperado' },
+          { id: 'd4', label: 'Quilometragem registrada no ato da entrega' },
+          { id: 'd5', label: 'Nível de combustível anotado' }
+      ]},
+      { id: 'secao_2', title: 'Lataria e pintura', items: [
+          { id: 'l1', label: 'Avarias mapeadas e fotografadas (riscos, amassados, trincas)' },
+          { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
+          { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
+          { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
+          { id: 'l5', label: 'Retrovisores e maçanetas conferidas' },
+          { id: 'l6', label: 'Pontos de ferrugem e pintura descascados registrados' }
+      ]},
+      { id: 'secao_3', title: 'Vidros, rodas e iluminação', items: [
+          { id: 'v1', label: 'Para-brisa e vidros laterais sem trincas' },
+          { id: 'v2', label: 'Palhetas de limpadores conferidas' },
+          { id: 'v3', label: 'Pneus, rodas e calotas conferidas' },
+          { id: 'v4', label: 'Estepe, macaco e chave de roda presentes' },
+          { id: 'v5', label: 'Faróis, lanternas e luz de freio funcionando' }
+      ]},
+      { id: 'secao_4', title: 'Interior e acessórios', items: [
+          { id: 'i1', label: 'Estofamento, forrações e painéis conferidos' },
+          { id: 'i2', label: 'Tapetes e acabamentos internos presentes' },
+          { id: 'i3', label: 'Itens pessoais retirados e devoluções ao cliente' },
+          { id: 'i4', label: 'Documentos e objetos de valor retirados do veículo' }
+      ]},
+      { id: 'secao_5', title: 'Mecânica e elétrica', items: [
+          { id: 'm1', label: 'Nível de óleo, água e fluidos conferidos' },
+          { id: 'm2', label: 'Bateria e terminais em ordem' },
+          { id: 'm3', label: 'Luzes de painel verificados' },
+          { id: 'm4', label: 'Ar condicionado e ventilação testados' },
+          { id: 'm5', label: 'Rádio e multimídia testados' },
+          { id: 'm6', label: 'Vidros elétricos e trabalhos testados' }
+      ]},
+      { id: 'secao_6', title: 'Fechamento da entrada', items: [
+          { id: 'f1', label: 'Cliente ciente das avarias registradas' },
+          { id: 'f2', label: 'Orçamento apresentado e aprovado' },
+          { id: 'f3', label: 'Fotos anexadas ao processo do veículo' },
+          { id: 'f4', label: 'Prazo estimado de entrega combinado' }
+      ]}
     ];
 
+    // ==========================================
+    // ESTADOS
+    // ==========================================
     let vehicleData = {}; 
     let checkedItems = {}; 
     let selectedDamageType = 'risco'; 
     let marks = []; 
+    let currentPhotoView = 'frente'; // Saber qual imagem estamos tirando foto
 
     // ==========================================
-    // LÓGICA DE UPLOAD DA FOTO
+    // 1. IDENTIFICAÇÃO E CHECKLIST
+    // ==========================================
+    function renderVehicleFields() {
+      const container = document.getElementById('vehicle-fields-container');
+      container.innerHTML = campos.map(campo => `
+        <label class="block">
+          <span class="mb-1.5 block text-[10px] uppercase tracking-[0.16em] text-gray-500">${campo.label}</span>
+          <input type="${campo.type || 'text'}" value="${vehicleData[campo.key] || ''}" placeholder="${campo.placeholder || ''}"
+            oninput="vehicleData['${campo.key}'] = this.value"
+            class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200" />
+        </label>
+      `).join('');
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-sections-container');
+      container.innerHTML = checklistData.map((section, idx) => {
+        const doneCount = section.items.filter(i => checkedItems[i.id]).length;
+        const allDone = doneCount === section.items.length;
+        return `
+          <section class="mb-6">
+            <div class="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
+              <h3 class="flex items-center gap-2.5 font-bold text-lg text-gray-900">
+                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-500">${String(idx + 1).padStart(2, "0")}</span>
+                ${section.title}
+              </h3>
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] text-gray-500">${doneCount} / ${section.items.length}</span>
+                <button onclick="toggleAll('${section.id}')" class="text-[10px] uppercase text-gray-500 hover:text-gray-900">${allDone ? 'Limpar' : 'Marcar todos'}</button>
+              </div>
+            </div>
+            <ul>${section.items.map(item => `
+              <li class="border-b border-gray-100 last:border-b-0">
+                <label class="flex cursor-pointer items-start gap-3 py-2.5">
+                  <input type="checkbox" ${checkedItems[item.id] ? 'checked' : ''} onchange="toggleItem('${item.id}')" class="mt-1 h-4 w-4 cursor-pointer accent-gray-900" />
+                  <span class="text-[13.5px] ${checkedItems[item.id] ? 'text-gray-400 line-through' : 'text-gray-900'}">${item.label}</span>
+                </label>
+              </li>
+            `).join('')}</ul>
+          </section>
+        `;
+      }).join('');
+    }
+
+    window.toggleItem = (id) => { checkedItems[id] = !checkedItems[id]; renderChecklist(); };
+    window.toggleAll = (secId) => { 
+      const sec = checklistData.find(s => s.id === secId);
+      const all = sec.items.every(i => checkedItems[i.id]);
+      sec.items.forEach(i => checkedItems[i.id] = !all);
+      renderChecklist();
+    };
+
+    // ==========================================
+    // 2. MAPA DE AVARIAS (CÂMERA POR VISTA)
     // ==========================================
     const mapContainer = document.getElementById('damage-map');
-    const imageElement = document.getElementById('uploaded-image');
-    const changePhotoContainer = document.getElementById('change-photo-container');
+    const paginationDots = document.querySelectorAll('#map-pagination span');
     
-    // Função chamada quando a pessoa seleciona/tira a foto
+    // Abre a câmera guardando qual vista está ativa
+    window.triggerCamera = (viewName) => {
+      currentPhotoView = viewName;
+      document.getElementById('camera-input').click();
+    };
+
+    // Processa a foto tirada
     window.handleImageUpload = function(event) {
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          // Coloca a imagem no fundo do mapa
-          imageElement.src = e.target.result;
-          // Adiciona classe para tirar o placeholder cinza
-          mapContainer.classList.add('has-image');
-          changePhotoContainer.classList.remove('hidden');
-          
-          // Limpa as marcas antigas (pois é uma foto nova)
-          marks = [];
-          renderAllDamage();
+          const slide = document.querySelector(`.map-slide[data-view="${currentPhotoView}"]`);
+          if(slide) {
+            slide.querySelector('.photo-img').src = e.target.result;
+            slide.classList.add('has-photo');
+          }
         };
         reader.readAsDataURL(file);
       }
+      event.target.value = ''; // Limpa o input para permitir tirar outra foto
     };
 
-    // ==========================================
-    // RENDERIZAÇÃO E CLIQUE NO MAPA
-    // ==========================================
+    // Atualiza a paginação ao deslizar
+    mapContainer.addEventListener('scroll', () => {
+      const scrollLeft = mapContainer.scrollLeft;
+      const width = mapContainer.offsetWidth;
+      const activeIndex = Math.round(scrollLeft / width);
+      
+      paginationDots.forEach((dot, idx) => {
+        dot.className = idx === activeIndex 
+          ? "w-2 h-2 rounded-full bg-gray-800 transition-colors" 
+          : "w-2 h-2 rounded-full bg-gray-200 transition-colors";
+      });
+    });
+
+    // Adicionar marcador na foto
+    document.querySelectorAll('.map-slide').forEach(slide => {
+      slide.addEventListener('click', (event) => {
+        // Ignora o clique se estiver clicando no botão de tirar foto
+        if(event.target.closest('.photo-placeholder')) return;
+        // Ignora se não tiver foto ainda
+        if(!slide.classList.contains('has-photo')) return;
+
+        const rect = slide.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+        
+        marks.push({ 
+          id: Date.now().toString(), 
+          x: parseFloat(x.toFixed(2)), 
+          y: parseFloat(y.toFixed(2)), 
+          type: selectedDamageType,
+          view: slide.getAttribute('data-view')
+        });
+        renderAllDamage();
+      });
+    });
+
     function renderDamageButtons() {
       const container = document.getElementById('damage-buttons');
       container.innerHTML = damageTypes.map(tipo => `
@@ -206,38 +397,21 @@
       `).join('');
     }
 
-    // Clique para adicionar marcador na foto
-    mapContainer.addEventListener('click', (event) => {
-      // Se não tiver imagem carregada, não deixa marcar
-      if (!mapContainer.classList.contains('has-image')) return;
-
-      const rect = mapContainer.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width) * 100;
-      const y = ((event.clientY - rect.top) / rect.height) * 100;
-      
-      marks.push({ 
-        id: Date.now().toString(), 
-        x: parseFloat(x.toFixed(2)), 
-        y: parseFloat(y.toFixed(2)), 
-        type: selectedDamageType,
-        view: 'foto' // Agora só temos a vista da foto
-      });
-      renderAllDamage();
-    });
-
     function renderMarks() {
-      const layer = document.querySelector('.markers-layer');
-      layer.innerHTML = '';
+      document.querySelectorAll('.markers-layer').forEach(layer => layer.innerHTML = '');
       
       marks.forEach((mark, index) => {
-        const span = document.createElement('span');
-        span.className = 'marker';
-        span.style.left = `${mark.x}%`;
-        span.style.top = `${mark.y}%`;
-        span.style.borderColor = getTypeColor(mark.type);
-        span.style.color = getTypeColor(mark.type);
-        span.textContent = index + 1;
-        layer.appendChild(span);
+        const slide = document.querySelector(`.map-slide[data-view="${mark.view}"]`);
+        if (slide) {
+          const span = document.createElement('span');
+          span.className = 'marker';
+          span.style.left = `${mark.x}%`;
+          span.style.top = `${mark.y}%`;
+          span.style.borderColor = getTypeColor(mark.type);
+          span.style.color = getTypeColor(mark.type);
+          span.textContent = index + 1;
+          slide.querySelector('.markers-layer').appendChild(span);
+        }
       });
     }
 
@@ -246,7 +420,7 @@
       listContainer.innerHTML = '';
 
       if (marks.length === 0) {
-        listContainer.innerHTML = `<p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">Nenhuma avaria marcada na foto.</p>`;
+        listContainer.innerHTML = `<p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">Nenhuma variação marcada. Escolha o tipo e toque na foto para registrar.</p>`;
         return;
       }
 
@@ -258,11 +432,12 @@
         li.className = "flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2";
 
         const options = damageTypes.map(tipo => `<option value="${tipo.key}" ${mark.type === tipo.key ? 'selected' : ''}>${tipo.label}</option>`).join('');
+        const viewNames = { 'frente': 'Frente', 'lateral': 'Lateral', 'traseira': 'Traseira', 'topo': 'Topo' };
 
         li.innerHTML = `
           <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums" 
                 style="border-color: ${getTypeColor(mark.type)}; color: ${getTypeColor(mark.type)};">${index + 1}</span>
-          <span class="min-w-0 flex-1 truncate text-[13px] text-gray-900">Avaria ${index + 1}</span>
+          <span class="min-w-0 flex-1 truncate text-[13px] text-gray-900">Avaria ${index + 1} <span class="text-gray-400 text-[10px] ml-1">(${viewNames[mark.view]})</span></span>
           <select class="rounded-md border border-gray-200 bg-white px-2 py-1 text-[12px]" onchange="updateMarkType('${mark.id}', this.value)">${options}</select>
           <button type="button" onclick="removeMark('${mark.id}')" class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-900"><i data-lucide="x" class="h-4 w-4"></i></button>
         `;
@@ -288,7 +463,9 @@
       renderDamageList();
     }
 
-    // Inicialização Básica
+    // Inicialização
+    renderVehicleFields();
+    renderChecklist();
     renderDamageButtons();
     renderAllDamage();
 

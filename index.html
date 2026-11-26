@@ -1,882 +1,429 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Controle Financeiro</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Financeiro">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vistoria de Veículo Completa</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Ícones (Lucide) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background: #f1f5f9; }
-    
-    .calendar-day { 
-      height: 36px !important; 
-      min-height: 36px !important; 
-      max-height: 36px !important;
-      font-size: 12px; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      border-radius: 6px;
-      padding: 0;
-      line-height: 1;
+    .map-container {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      cursor: crosshair;
+      overflow: hidden;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+      background-color: white;
     }
-    .day-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; }
-    
-    .expense-item { animation: fadeIn 0.2s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-    .modal-backdrop { backdrop-filter: blur(6px); }
-    select, input { font-size: 16px !important; }
-    .tab-btn.active { background: #000000; color: white; }
+    .marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid white;
+      font-size: 10px;
+      font-weight: 600;
+      background-color: white;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      pointer-events: none;
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
-<body class="min-h-screen text-slate-800">
+<body class="p-4 bg-gray-50 min-h-screen">
 
-  <header class="bg-black text-white sticky top-0 z-40 shadow">
-    <div class="max-w-lg mx-auto px-3 pt-2.5 pb-2">
-      <div class="flex items-center gap-2 mb-1.5">
-        <div class="bg-white/20 p-1 rounded-lg"><i class="fas fa-wallet text-xs"></i></div>
-        <div>
-          <h1 class="text-sm font-bold leading-tight">Controle Financeiro</h1>
-          <p class="text-gray-300 text-[9px]">Ganhos e gastos</p>
-        </div>
+  <div class="max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-sm space-y-8">
+    
+    <!-- 1. COMPONENTE VEHICLE FIELDS -->
+    <div>
+      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="font-bold text-xl text-gray-900">Identifique-se</h2>
+        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Vistoria de entrada</span>
       </div>
-      <div class="grid grid-cols-3 gap-1 text-center">
-        <div class="bg-white/15 rounded-md py-1 px-1">
-          <p class="text-[8px] text-gray-300">Ganhos</p>
-          <p id="month-income" class="text-[11px] font-bold">R$ 0,00</p>
-        </div>
-        <div class="bg-white/15 rounded-md py-1 px-1">
-          <p class="text-[8px] text-gray-300">Gastos</p>
-          <p id="month-expense" class="text-[11px] font-bold">R$ 0,00</p>
-        </div>
-        <div class="bg-white/25 rounded-md py-1 px-1">
-          <p class="text-[8px] text-gray-300">Saldo</p>
-          <p id="month-balance" class="text-[11px] font-bold">R$ 0,00</p>
-        </div>
-      </div>
-      <div class="mt-1.5 bg-white/15 rounded-md py-1.5 px-2 flex items-center justify-between">
-        <div>
-          <p class="text-[8px] text-gray-300">Saldo Inicial</p>
-          <p id="account-balance" class="text-[13px] font-bold">R$ 0,00</p>
-        </div>
-        <button id="btn-edit-balance" class="bg-white/20 active:bg-white/30 px-2 py-1 rounded-md text-[10px] font-medium">
-          <i class="fas fa-pen text-[9px]"></i> Editar
-        </button>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vehicle-fields-container">
+        <!-- Campos gerados via JS -->
       </div>
     </div>
-  </header>
 
-  <main class="max-w-lg mx-auto px-2 py-2 space-y-2 pb-16">
+    <hr class="border-gray-200">
 
-    <div class="flex gap-1 bg-white rounded-lg p-0.5 shadow-sm">
-      <button id="tab-calendario" class="tab-btn active flex-1 py-1.5 rounded-md text-[11px] font-medium transition">Calendário</button>
-      <button id="tab-historico" class="tab-btn flex-1 py-1.5 rounded-md text-[11px] font-medium text-slate-500 transition">Histórico</button>
+    <!-- 2. COMPONENTE CHECKLIST SECTION -->
+    <div id="checklist-sections-container" class="space-y-6">
+      <!-- Seções de checklist geradas via JS -->
     </div>
 
-    <div id="view-calendario">
-      <section class="bg-white rounded-lg shadow-sm overflow-hidden p-1">
-        <div class="flex items-center justify-between px-1 py-1 border-b border-slate-100 mb-1">
-          <button id="prev-month" class="w-7 h-7 rounded-md bg-slate-50 active:bg-slate-200 flex items-center justify-center">
-            <i class="fas fa-chevron-left text-slate-500 text-[10px]"></i>
-          </button>
-          <h2 id="month-label" class="text-xs font-semibold"></h2>
-          <button id="next-month" class="w-7 h-7 rounded-md bg-slate-50 active:bg-slate-200 flex items-center justify-center">
-            <i class="fas fa-chevron-right text-slate-500 text-[10px]"></i>
-          </button>
-        </div>
-        <div class="grid grid-cols-7 text-center text-[9px] font-medium text-slate-400 py-1">
-          <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
-        </div>
-        <div id="calendar-grid" class="grid grid-cols-7 gap-1 px-1 pb-1"></div>
-        <div class="flex items-center justify-center gap-2 py-1 border-t border-slate-50 text-[9px] text-slate-400 mt-1">
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-black"></span> Ganho</span>
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gasto</span>
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:linear-gradient(90deg,#000000 50%,#ef4444 50%)"></span> Ambos</span>
-        </div>
-      </section>
+    <hr class="border-gray-200">
 
-      <section class="bg-white rounded-lg shadow-sm p-2.5 mt-2">
-        <div class="flex items-center justify-between mb-1.5">
-          <div>
-            <p class="text-[9px] text-slate-400">Dia selecionado</p>
-            <h3 id="selected-day-label" class="text-xs font-semibold capitalize">—</h3>
-          </div>
-          <button id="btn-add" class="bg-black active:bg-gray-800 text-white px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm">
-            <i class="fas fa-plus text-[9px]"></i> Adicionar
-          </button>
-        </div>
-        <div class="grid grid-cols-3 gap-1 mb-1.5">
-          <div class="bg-gray-100 rounded-md p-1 text-center">
-            <p class="text-[8px] text-black font-medium">Ganhos</p>
-            <p id="day-income" class="text-[10px] font-bold text-black">R$ 0,00</p>
-          </div>
-          <div class="bg-red-50 rounded-md p-1 text-center">
-            <p class="text-[8px] text-red-600 font-medium">Gastos</p>
-            <p id="day-expense" class="text-[10px] font-bold text-red-700">R$ 0,00</p>
-          </div>
-          <div class="bg-slate-100 rounded-md p-1 text-center">
-            <p class="text-[8px] text-slate-500 font-medium">Saldo</p>
-            <p id="day-balance" class="text-[10px] font-bold text-slate-700">R$ 0,00</p>
-          </div>
-        </div>
-        <div id="transactions-list" class="space-y-1 max-h-32 overflow-y-auto">
-          <p class="text-center text-slate-400 text-[11px] py-3">Toque em um dia no calendário</p>
-        </div>
-      </section>
-
-      <section class="bg-white rounded-lg shadow-sm p-2.5 mt-2">
-        <div class="flex items-center justify-between mb-1.5">
-          <h3 class="font-semibold text-[11px] flex items-center gap-1">
-            <i class="fas fa-chart-pie text-black text-[10px]"></i> Resumo do mês
-          </h3>
-          <div class="flex gap-0.5 text-[9px]">
-            <button id="tab-expense" class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">Gastos</button>
-            <button id="tab-income" class="px-1.5 py-0.5 rounded text-slate-400">Ganhos</button>
-          </div>
-        </div>
-        <div id="categories-summary" class="space-y-1 text-[11px] max-h-72 overflow-y-auto pr-0.5">
-          <p class="text-slate-400 text-center py-3 text-[10px]">Nenhum registro</p>
-        </div>
-      </section>
-    </div>
-
-    <div id="view-historico" class="hidden">
-      <section class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="grid grid-cols-4 gap-1 px-2.5 py-2 bg-slate-50 border-b border-slate-100 text-[9px] font-semibold text-slate-500 uppercase tracking-wide">
-          <div>Mês</div>
-          <div class="text-right text-black">Ganhos</div>
-          <div class="text-right text-red-500">Gastos</div>
-          <div class="text-right">Saldo</div>
-        </div>
-        <div id="history-list" class="divide-y divide-slate-100">
-          <p class="text-slate-400 text-center py-8 text-xs">Nenhum mês com registros</p>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- MODAL ADICIONAR/EDITAR REGISTRO -->
-  <div id="modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
-    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-      <div id="modal-header" class="bg-black px-4 py-3 flex items-center justify-between sticky top-0">
-        <h3 id="modal-title" class="text-white font-semibold text-sm">Novo Registro</h3>
-        <button id="close-modal" class="text-white/80 w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
+    <!-- 3. COMPONENTE DAMAGE MAP -->
+    <div>
+      <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="font-bold text-xl text-gray-900">Mapa de avarias</h2>
+        <span class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Toque no desenho para marcar</span>
       </div>
-      <form id="form" class="p-4 space-y-3.5">
-        <input type="hidden" id="item-id" />
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Tipo</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" id="type-income" class="py-2.5 rounded-xl border-2 border-black bg-gray-100 text-black font-medium text-sm flex items-center justify-center gap-2">
-              <i class="fas fa-arrow-down"></i> Ganho
-            </button>
-            <button type="button" id="type-expense" class="py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2">
-              <i class="fas fa-arrow-up"></i> Gasto
-            </button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
-          <input type="date" id="item-date" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Descrição</label>
-          <input type="text" id="item-desc" required placeholder="Ex: Salário, Almoço..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Valor (R$)</label>
-          <input type="number" id="item-amount" required min="0.01" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Categoria</label>
-          <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black bg-white appearance-none"></select>
-        </div>
-        <div class="flex gap-2.5 pt-1 pb-1">
-          <button type="button" id="cancel-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancelar</button>
-          <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- MODAL EDITAR SALDO INICIAL -->
-  <div id="balance-modal" class="fixed inset-0 bg-black/50 modal-backdrop hidden items-end sm:items-center justify-center z-50">
-    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-      <div class="bg-black px-4 py-3 flex items-center justify-between sticky top-0">
-        <h3 class="text-white font-semibold text-sm">Saldo Inicial</h3>
-        <button id="close-balance-modal" class="text-white/80 w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      <div class="mb-3 flex flex-wrap gap-1.5" id="damage-buttons"></div>
+
+      <div class="map-container" id="damage-map">
+        <img 
+          src="https://placehold.co/1024x1024/f3f4f6/9ca3af?text=Desenho+do+Carro" 
+          alt="Desenho técnico do veículo" 
+          class="h-full w-full object-contain"
+        >
+        <div class="pointer-events-none absolute inset-0" id="markers-container"></div>
       </div>
-      <form id="balance-form" class="p-4 space-y-3.5">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Quanto você tem na conta hoje? (R$)</label>
-          <input type="number" id="balance-amount" required min="0" step="0.01" placeholder="0,00" inputmode="decimal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div class="flex gap-2.5 pt-1 pb-1">
-          <button type="button" id="cancel-balance-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancelar</button>
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-lg transform translate-y-14 opacity-0 transition-all duration-300 z-50 text-xs flex items-center gap-2 pointer-events-none">
-    <i class="fas fa-check-circle text-gray-300"></i>
-    <span id="toast-msg">Salvo!</span>
+      <p class="mt-2 text-center text-[11px] text-gray-500">Frente · Lateral · Traseira · Vista Superior</p>
+    </div>
+
+    <hr class="border-gray-200">
+
+    <!-- 4. COMPONENTE DAMAGE LIST -->
+    <div id="damage-list-container">
+      <!-- Lista gerada via JS -->
+    </div>
+
   </div>
 
   <script>
-    const EXPENSE_CATS = {
-      'Alimentação': { icon: '🍽️', color: 'bg-orange-100 text-orange-700' },
-      'Transporte':  { icon: '🚗', color: 'bg-sky-100 text-sky-700' },
-      'Moradia':     { icon: '🏠', color: 'bg-purple-100 text-purple-700' },
-      'Lazer':       { icon: '🎮', color: 'bg-pink-100 text-pink-700' },
-      'Saúde':       { icon: '💊', color: 'bg-red-100 text-red-700' },
-      'Educação':    { icon: '📚', color: 'bg-indigo-100 text-indigo-700' },
-      'Outros':      { icon: '📦', color: 'bg-slate-100 text-slate-700' }
-    };
-    const INCOME_CATS = {
-      'Salário':       { icon: '💼', color: 'bg-gray-200 text-black' },
-      'Freelance':     { icon: '💻', color: 'bg-cyan-100 text-cyan-700' },
-      'Investimentos': { icon: '📈', color: 'bg-sky-100 text-sky-700' },
-      'Presente':      { icon: '🎁', color: 'bg-amber-100 text-amber-700' },
-      'Reembolso':     { icon: '↩️', color: 'bg-lime-100 text-lime-700' },
-      'Outros':        { icon: '💰', color: 'bg-gray-200 text-black' }
+    // ==========================================
+    // DADOS: AVARIAS (damageConfig.js)
+    // ==========================================
+    const damageTypes = [
+      { key: "risco", label: "Risco", color: "#B4791F" },
+      { key: "amassado", label: "Amassado", color: "#2F6F8F" },
+      { key: "trinca", label: "Trinca", color: "#7A4FA3" },
+      { key: "quebrado", label: "Quebrado", color: "#B3402F" },
+      { key: "ferrugem", label: "Ferrugem", color: "#8A5A2B" }
+    ];
+
+    const getTypeColor = (key) => {
+      const found = damageTypes.find(type => type.key === key);
+      return found ? found.color : damageTypes[0].color;
     };
 
-    let currentDate = new Date();
-    let selectedDate = null;
-    let currentType = 'income';
-    let summaryTab = 'expense';
-    let expandedCategory = null;
-    let expandedMonths = {};
-    let data = JSON.parse(localStorage.getItem('financeiro_calendar') || '{}');
-    let accountBalance = parseFloat(localStorage.getItem('financeiro_balance') || '0');
+    // ==========================================
+    // DADOS: CAMPOS DO VEÍCULO (VehicleFields.jsx)
+    // ==========================================
+    const campos = [
+      { key: "placa", label: "Placa", placeholder: "ABC-1D23" },
+      { key: "modelo", label: "Veículo / modelo", placeholder: "Gol 1.6 - 2019" },
+      { key: "cor", label: "Cor", placeholder: "Prata" },
+      { key: "cliente", label: "Cliente", placeholder: "Nome do cliente" },
+      { key: "data", label: "Data", type: "date" },
+      { key: "km", label: "Quilometragem", placeholder: "84.320" },
+      { key: "responsavel", label: "Responsável", placeholder: "Quem conferiu" },
+      { key: "os", label: "Ordem de serviço", placeholder: "OS 1042" },
+    ];
 
-    function formatCurrency(v) {
-      return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-    function toKey(y, m, d) {
-      return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    }
-    function parseKey(key) {
-      var p = key.split('-').map(Number);
-      return new Date(p[0], p[1] - 1, p[2]);
-    }
-    function showToast(msg) {
-      var t = document.getElementById('toast');
-      document.getElementById('toast-msg').textContent = msg;
-      t.classList.remove('translate-y-14', 'opacity-0');
-      setTimeout(function() { t.classList.add('translate-y-14', 'opacity-0'); }, 2000);
-    }
-    function saveData() {
-      localStorage.setItem('financeiro_calendar', JSON.stringify(data));
-    }
-    function renderAccountBalance() {
-      document.getElementById('account-balance').textContent = formatCurrency(accountBalance);
-    }
-    function fillCategories() {
-      var select = document.getElementById('item-category');
-      var cats = currentType === 'income' ? INCOME_CATS : EXPENSE_CATS;
-      select.innerHTML = '';
-      Object.keys(cats).forEach(function(name) {
-        var opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = cats[name].icon + '  ' + name;
-        select.appendChild(opt);
-      });
-    }
-
-    // --- CONTROLE DO MODAL DE SALDO ---
-    var balanceModal = document.getElementById('balance-modal');
-    
-    document.getElementById('btn-edit-balance').addEventListener('click', function() {
-      document.getElementById('balance-amount').value = accountBalance > 0 ? accountBalance.toFixed(2) : '';
-      balanceModal.classList.remove('hidden');
-      balanceModal.classList.add('flex');
-    });
-
-    function closeBalanceModal() {
-      balanceModal.classList.add('hidden');
-      balanceModal.classList.remove('flex');
-    }
-
-    document.getElementById('close-balance-modal').addEventListener('click', closeBalanceModal);
-    document.getElementById('cancel-balance-modal').addEventListener('click', closeBalanceModal);
-    balanceModal.addEventListener('click', function(e) { if (e.target === balanceModal) closeBalanceModal(); });
-
-    document.getElementById('balance-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var n = parseFloat(document.getElementById('balance-amount').value);
-      if (isNaN(n) || n < 0) { showToast('Valor inválido'); return; }
-      accountBalance = n;
-      localStorage.setItem('financeiro_balance', accountBalance);
-      renderAccountBalance();
-      updateMonthTotals();
-      closeBalanceModal();
-      showToast('Saldo inicial atualizado!');
-    });
-    // ----------------------------------
-
-    document.getElementById('tab-calendario').addEventListener('click', function() {
-      this.classList.add('active');
-      this.classList.remove('text-slate-500');
-      document.getElementById('tab-historico').classList.remove('active');
-      document.getElementById('tab-historico').classList.add('text-slate-500');
-      document.getElementById('view-calendario').classList.remove('hidden');
-      document.getElementById('view-historico').classList.add('hidden');
-    });
-    document.getElementById('tab-historico').addEventListener('click', function() {
-      this.classList.add('active');
-      this.classList.remove('text-slate-500');
-      document.getElementById('tab-calendario').classList.remove('active');
-      document.getElementById('tab-calendario').classList.add('text-slate-500');
-      document.getElementById('view-calendario').classList.add('hidden');
-      document.getElementById('view-historico').classList.remove('hidden');
-      renderHistory();
-    });
-
-    function renderCalendar() {
-      var year = currentDate.getFullYear();
-      var month = currentDate.getMonth();
-      var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-      document.getElementById('month-label').textContent = monthNames[month] + ' ' + year;
-      var firstDay = new Date(year, month, 1).getDay();
-      var daysInMonth = new Date(year, month + 1, 0).getDate();
-      var today = new Date();
-      var todayKey = toKey(today.getFullYear(), today.getMonth(), today.getDate());
-      var grid = document.getElementById('calendar-grid');
-      grid.innerHTML = '';
-      for (var i = 0; i < firstDay; i++) {
-        var empty = document.createElement('div');
-        empty.className = 'h-[36px]';
-        grid.appendChild(empty);
+    // ==========================================
+    // DADOS: CHECKLIST REAL (vistoriaEntrada.js)
+    // ==========================================
+    const checklistData = [
+      {
+        id: 'secao_1',
+        title: 'Documentação e identificação',
+        items: [
+          { id: 'd1', label: 'Placa e chassi conferidos com o documento' },
+          { id: 'd2', label: 'CRLV ou autorização do proprietário conferido' },
+          { id: 'd3', label: 'Chave, controle e manual recuperado' },
+          { id: 'd4', label: 'Quilometragem registrada no ato da entrega' },
+          { id: 'd5', label: 'Nível de combustível anotado' }
+        ]
+      },
+      {
+        id: 'secao_2',
+        title: 'Lataria e pintura',
+        items: [
+          { id: 'l1', label: 'Avarias mapeadas e fotografadas (riscos, amassados, trincas)' },
+          { id: 'l2', label: 'Para-choques dianteiros e traseiros conferidos' },
+          { id: 'l3', label: 'Capô, portas e tampa da porta-malas conferidas' },
+          { id: 'l4', label: 'Grau, frisos e emblemas conferidos' },
+          { id: 'l5', label: 'Retrovisores e maçanetas conferidas' },
+          { id: 'l6', label: 'Pontos de ferrugem e pintura descascados registrados' }
+        ]
+      },
+      {
+        id: 'secao_3',
+        title: 'Vidros, rodas e iluminação',
+        items: [
+          { id: 'v1', label: 'Para-brisa e vidros laterais sem trincas' },
+          { id: 'v2', label: 'Palhetas de limpadores conferidas' },
+          { id: 'v3', label: 'Pneus, rodas e calotas conferidas' },
+          { id: 'v4', label: 'Estepe, macaco e chave de roda presentes' },
+          { id: 'v5', label: 'Faróis, lanternas e luz de freio funcionando' }
+        ]
+      },
+      {
+        id: 'secao_4',
+        title: 'Interior e acessórios',
+        items: [
+          { id: 'i1', label: 'Estofamento, forrações e painéis conferidos' },
+          { id: 'i2', label: 'Tapetes e acabamentos internos presentes' },
+          { id: 'i3', label: 'Itens pessoais retirados e devoluções ao cliente' },
+          { id: 'i4', label: 'Documentos e objetos de valor retirados do veículo' }
+        ]
+      },
+      {
+        id: 'secao_5',
+        title: 'Mecânica e elétrica',
+        items: [
+          { id: 'm1', label: 'Nível de óleo, água e fluidos conferidos' },
+          { id: 'm2', label: 'Bateria e terminais em ordem' },
+          { id: 'm3', label: 'Luzes de painel verificados' },
+          { id: 'm4', label: 'Ar condicionado e ventilação testados' },
+          { id: 'm5', label: 'Rádio e multimídia testados' },
+          { id: 'm6', label: 'Vidros elétricos e trabalhos testados' }
+        ]
+      },
+      {
+        id: 'secao_6',
+        title: 'Fechamento da entrada',
+        items: [
+          { id: 'f1', label: 'Cliente ciente das avarias registradas' },
+          { id: 'f2', label: 'Orçamento apresentado e aprovado' },
+          { id: 'f3', label: 'Fotos anexadas ao processo do veículo' },
+          { id: 'f4', label: 'Prazo estimado de entrega combinado' }
+        ]
       }
-      for (var day = 1; day <= daysInMonth; day++) {
-        var key = toKey(year, month, day);
-        var items = data[key] || [];
-        var hasIncome = items.some(function(i) { return i.type === 'income'; });
-        var hasExpense = items.some(function(i) { return i.type === 'expense'; });
-        var isToday = key === todayKey;
-        var isSelected = key === selectedDate;
-        var cell = document.createElement('div');
-        cell.className = 'calendar-day cursor-pointer font-medium';
-        cell.dataset.key = key;
-        if (isSelected) cell.className += ' bg-black text-white shadow-sm';
-        else if (isToday) cell.className += ' bg-gray-100 text-black ring-1 ring-black';
-        else cell.className += ' text-slate-700 active:bg-slate-100';
-        var num = document.createElement('span');
-        num.textContent = day;
-        cell.appendChild(num);
-        if (hasIncome || hasExpense) {
-          var dot = document.createElement('span');
-          dot.className = 'day-dot';
-          if (hasIncome && hasExpense) {
-            dot.style.background = 'linear-gradient(90deg, #000000 50%, #ef4444 50%)';
-            dot.style.width = '6px';
-          } else if (hasIncome) dot.style.background = '#000000';
-          else dot.style.background = '#ef4444';
-          cell.appendChild(dot);
-        }
-        cell.addEventListener('click', function() {
-          selectedDate = this.dataset.key;
-          renderCalendar();
-          renderDayPanel();
-        });
-        grid.appendChild(cell);
-      }
-      updateMonthTotals();
-      renderCategoriesSummary();
-    }
+    ];
 
-    function renderDayPanel() {
-      if (!selectedDate) return;
-      var date = parseKey(selectedDate);
-      document.getElementById('selected-day-label').textContent = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-      var items = data[selectedDate] || [];
-      var income = 0, expense = 0;
-      items.forEach(function(i) {
-        if (i.type === 'income') income += i.amount;
-        else expense += i.amount;
-      });
-      var balance = income - expense;
-      document.getElementById('day-income').textContent = formatCurrency(income);
-      document.getElementById('day-expense').textContent = formatCurrency(expense);
-      var balEl = document.getElementById('day-balance');
-      balEl.textContent = formatCurrency(balance);
-      balEl.className = 'text-[10px] font-bold ' + (balance >= 0 ? 'text-black' : 'text-red-700');
-      var list = document.getElementById('transactions-list');
-      if (items.length === 0) {
-        list.innerHTML = '<p class="text-center text-slate-400 text-[11px] py-3">Nenhum registro neste dia</p>';
-        return;
-      }
-      items = items.slice().sort(function(a, b) { return b.timestamp - a.timestamp; });
-      list.innerHTML = '';
-      items.forEach(function(item) {
-        var cats = item.type === 'income' ? INCOME_CATS : EXPENSE_CATS;
-        var cat = cats[item.category] || cats['Outros'];
-        var isIncome = item.type === 'income';
-        var row = document.createElement('div');
-        row.className = 'expense-item flex items-center gap-1.5 p-1.5 rounded-md bg-slate-50 border border-slate-100';
-        var iconBox = document.createElement('div');
-        iconBox.className = 'w-7 h-7 rounded-md flex items-center justify-center text-[12px] shrink-0 ' + cat.color;
-        iconBox.textContent = cat.icon;
-        var info = document.createElement('div');
-        info.className = 'flex-1 min-w-0';
-        var title = document.createElement('p');
-        title.className = 'font-medium text-slate-800 text-[11px] truncate';
-        title.textContent = item.desc;
-        var sub = document.createElement('p');
-        sub.className = 'text-[9px] text-slate-400';
-        sub.textContent = item.category + ' · ' + (isIncome ? 'Ganho' : 'Gasto');
-        info.appendChild(title);
-        info.appendChild(sub);
-        var right = document.createElement('div');
-        right.className = 'text-right shrink-0';
-        var val = document.createElement('p');
-        val.className = 'font-semibold text-[11px] ' + (isIncome ? 'text-black' : 'text-red-600');
-        val.textContent = (isIncome ? '+ ' : '− ') + formatCurrency(item.amount);
-        var actions = document.createElement('div');
-        actions.className = 'flex gap-2 mt-0.5 justify-end';
-        var editBtn = document.createElement('button');
-        editBtn.className = 'text-slate-400 text-[9px]';
-        editBtn.innerHTML = '<i class="fas fa-pen"></i>';
-        editBtn.addEventListener('click', function() { editItem(item.id); });
-        var delBtn = document.createElement('button');
-        delBtn.className = 'text-slate-400 text-[9px]';
-        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        delBtn.addEventListener('click', function() { deleteItem(item.id); });
-        actions.appendChild(editBtn);
-        actions.appendChild(delBtn);
-        right.appendChild(val);
-        right.appendChild(actions);
-        row.appendChild(iconBox);
-        row.appendChild(info);
-        row.appendChild(right);
-        list.appendChild(row);
-      });
-    }
+    // ==========================================
+    // ESTADOS GLOBAIS
+    // ==========================================
+    let vehicleData = {}; 
+    let checkedItems = {}; 
+    let selectedDamageType = 'risco'; 
+    let marks = []; 
 
-    function updateMonthTotals() {
-      var year = currentDate.getFullYear();
-      var month = currentDate.getMonth();
-      var prefix = year + '-' + String(month + 1).padStart(2, '0');
-      var income = 0, expense = 0;
-      Object.keys(data).forEach(function(key) {
-        if (key.indexOf(prefix) === 0) {
-          data[key].forEach(function(i) {
-            if (i.type === 'income') income += i.amount;
-            else expense += i.amount;
-          });
-        }
-      });
-      document.getElementById('month-income').textContent = formatCurrency(income);
-      document.getElementById('month-expense').textContent = formatCurrency(expense);
-      
-      var bal = accountBalance + income - expense;
-      
-      var balEl = document.getElementById('month-balance');
-      balEl.textContent = formatCurrency(bal);
-      balEl.className = 'text-[11px] font-bold ' + (bal >= 0 ? 'text-white' : 'text-red-200');
-    }
+    // ==========================================
+    // RENDERIZAÇÃO: VEHICLE FIELDS
+    // ==========================================
+    const vehicleContainer = document.getElementById('vehicle-fields-container');
 
-    function renderCategoriesSummary() {
-      var year = currentDate.getFullYear();
-      var month = currentDate.getMonth();
-      var prefix = year + '-' + String(month + 1).padStart(2, '0');
-      var type = summaryTab;
-      var cats = type === 'income' ? INCOME_CATS : EXPENSE_CATS;
-
-      var byCat = {};
-      Object.keys(data).forEach(function(key) {
-        if (key.indexOf(prefix) === 0) {
-          data[key].forEach(function(e) {
-            if (e.type === type) {
-              if (!byCat[e.category]) byCat[e.category] = { total: 0, items: [] };
-              byCat[e.category].total += e.amount;
-              byCat[e.category].items.push({ date: key, desc: e.desc, amount: e.amount, id: e.id });
-            }
-          });
-        }
-      });
-
-      var container = document.getElementById('categories-summary');
-      var entries = Object.keys(byCat).map(function(k) {
-        return [k, byCat[k].total, byCat[k].items];
-      }).sort(function(a, b) { return b[1] - a[1]; });
-
-      if (entries.length === 0) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-3 text-[10px]">Nenhum ' + (type === 'income' ? 'ganho' : 'gasto') + ' neste mês</p>';
-        return;
-      }
-
-      var max = Math.max.apply(null, entries.map(function(e) { return e[1]; }));
-      var barColor = type === 'income' ? 'bg-black' : 'bg-red-400';
-      container.innerHTML = '';
-
-      entries.forEach(function(entry) {
-        var cat = entry[0], val = entry[1], items = entry[2];
-        var info = cats[cat] || cats['Outros'];
-        var pct = Math.round((val / max) * 100);
+    function renderVehicleFields() {
+      vehicleContainer.innerHTML = '';
+      campos.forEach(campo => {
+        const label = document.createElement('label');
+        label.className = "block";
         
-        // CHAVE ÚNICA POR ABA (CORREÇÃO DO BUG)
-        var expandKey = type + '_' + cat;
-        var isOpen = expandedCategory === expandKey;
+        label.innerHTML = `
+          <span class="mb-1.5 block text-[10px] uppercase tracking-[0.16em] text-gray-500">
+            ${campo.label}
+          </span>
+          <input 
+            type="${campo.type || 'text'}" 
+            value="${vehicleData[campo.key] || ''}" 
+            placeholder="${campo.placeholder || ''}"
+            oninput="updateVehicleData('${campo.key}', this.value)"
+            class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          />
+        `;
+        vehicleContainer.appendChild(label);
+      });
+    }
 
-        items.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+    window.updateVehicleData = function(key, value) {
+      vehicleData[key] = value;
+    };
 
-        var wrap = document.createElement('div');
-        wrap.className = 'rounded-md border ' + (isOpen ? 'border-gray-300 bg-gray-100/50' : 'border-slate-100 bg-white') + ' overflow-hidden mb-1';
+    // ==========================================
+    // RENDERIZAÇÃO: CHECKLIST SECTION
+    // ==========================================
+    const checklistContainer = document.getElementById('checklist-sections-container');
 
-        var header = document.createElement('div');
-        header.className = 'flex justify-between items-center p-2 cursor-pointer select-none active:bg-slate-50 transition-colors';
+    function renderChecklist() {
+      checklistContainer.innerHTML = '';
+
+      checklistData.forEach((section, sectionIndex) => {
+        const doneCount = section.items.filter(item => checkedItems[item.id]).length;
+        const allDone = doneCount === section.items.length;
+
+        const sectionEl = document.createElement('section');
+        sectionEl.className = "mb-6 last:mb-0";
+
+        const headerEl = document.createElement('div');
+        headerEl.className = "mb-2 flex items-center justify-between gap-3 border-b border-gray-200 pb-2";
+        headerEl.innerHTML = `
+          <h3 class="flex items-center gap-2.5 font-bold text-lg leading-tight text-gray-900">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] tabular-nums text-gray-500">
+              ${String(sectionIndex + 1).padStart(2, "0")}
+            </span>
+            ${section.title}
+          </h3>
+          <div class="flex shrink-0 items-center gap-3">
+            <span class="text-[11px] tabular-nums text-gray-500">${doneCount} / ${section.items.length}</span>
+            <button type="button" onclick="toggleAll('${section.id}')" class="text-[10px] uppercase tracking-[0.12em] text-gray-500 hover:text-gray-900 transition-colors">
+              ${allDone ? 'Limpar' : 'Marcar todos'}
+            </button>
+          </div>
+        `;
+
+        const ul = document.createElement('ul');
+        section.items.forEach(item => {
+          const isDone = Boolean(checkedItems[item.id]);
+          const li = document.createElement('li');
+          li.className = "border-b border-gray-100 last:border-b-0";
+          
+          li.innerHTML = `
+            <label class="flex cursor-pointer items-start gap-3 py-2.5 transition-colors hover:text-gray-900">
+              <input 
+                type="checkbox" 
+                ${isDone ? 'checked' : ''} 
+                onchange="toggleItem('${item.id}')"
+                class="mt-[3px] h-4 w-4 shrink-0 cursor-pointer accent-gray-900"
+              />
+              <span class="text-[13.5px] leading-relaxed transition-colors ${isDone ? 'text-gray-400 line-through decoration-gray-400' : 'text-gray-900'}">
+                ${item.label}
+              </span>
+            </label>
+          `;
+          ul.appendChild(li);
+        });
+
+        sectionEl.appendChild(headerEl);
+        sectionEl.appendChild(ul);
+        checklistContainer.appendChild(sectionEl);
+      });
+    }
+
+    window.toggleItem = function(itemId) {
+      checkedItems[itemId] = !checkedItems[itemId];
+      renderChecklist();
+    };
+
+    window.toggleAll = function(sectionId) {
+      const section = checklistData.find(s => s.id === sectionId);
+      const allDone = section.items.every(item => checkedItems[item.id]);
+      section.items.forEach(item => { checkedItems[item.id] = !allDone; });
+      renderChecklist();
+    };
+
+    // ==========================================
+    // RENDERIZAÇÃO: DAMAGE MAP & LIST
+    // ==========================================
+    const buttonsContainer = document.getElementById('damage-buttons');
+    const mapContainer = document.getElementById('damage-map');
+    const markersContainer = document.getElementById('markers-container');
+    const listContainer = document.getElementById('damage-list-container');
+
+    function renderDamageButtons() {
+      buttonsContainer.innerHTML = '';
+      damageTypes.forEach(tipo => {
+        const isActive = tipo.key === selectedDamageType;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.onclick = () => { selectedDamageType = tipo.key; renderDamageButtons(); };
         
-        var arrowIcon = isOpen ? 'fa-chevron-up text-black' : 'fa-chevron-down text-slate-400';
-        var actionText = isOpen ? '<span class="text-[9px] text-black ml-1 font-semibold">Fechar</span>' : '';
-
-        header.innerHTML =
-          '<div class="flex items-center gap-1.5 font-medium text-slate-700">' +
-            '<i class="fas ' + arrowIcon + ' text-[9px] w-3"></i>' +
-            '<span class="text-[13px]">' + info.icon + '</span> ' + cat + actionText +
-          '</div>' +
-          '<span class="font-bold text-slate-800">' + formatCurrency(val) + '</span>';
-
-        header.addEventListener('click', function() {
-          if (expandedCategory === expandKey) {
-            expandedCategory = null;
-          } else {
-            expandedCategory = expandKey;
-          }
-          renderCategoriesSummary();
-        });
-
-        var bar = document.createElement('div');
-        bar.className = 'h-0.5 w-full bg-slate-100';
-        bar.innerHTML = '<div class="h-full ' + barColor + '" style="width:' + pct + '%"></div>';
-
-        wrap.appendChild(header);
-        wrap.appendChild(bar);
-
-        if (isOpen) {
-          var detail = document.createElement('div');
-          detail.className = 'p-2 bg-white border-t border-slate-100 space-y-1.5';
-          items.forEach(function(it) {
-            var d = parseKey(it.date);
-            var dayLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            var line = document.createElement('div');
-            line.className = 'flex items-center justify-between text-[10px] text-slate-600';
-            line.innerHTML =
-              '<span class="truncate flex-1 mr-2"><span class="text-slate-400 font-medium">' + dayLabel + '</span> · ' + it.desc + '</span>' +
-              '<span class="font-medium shrink-0 ' + (type === 'income' ? 'text-black' : 'text-red-500') + '">' +
-                (type === 'income' ? '+' : '−') + ' ' + formatCurrency(it.amount) +
-              '</span>';
-            detail.appendChild(line);
-          });
-          wrap.appendChild(detail);
-        }
-
-        container.appendChild(wrap);
+        button.className = `flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+          isActive ? 'border-gray-400 bg-gray-100 text-gray-900' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+        }`;
+        
+        button.innerHTML = `
+          <span class="h-2 w-2 rounded-full" style="background-color: ${tipo.color};"></span>
+          ${tipo.label}
+        `;
+        buttonsContainer.appendChild(button);
       });
     }
 
-    function renderHistory() {
-      var monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-      var monthItems = {};
-      Object.keys(data).forEach(function(key) {
-        var prefix = key.substring(0, 7);
-        if (!monthItems[prefix]) monthItems[prefix] = [];
-        data[key].forEach(function(item) {
-          monthItems[prefix].push({ item: item, dateKey: key });
-        });
-      });
-
-      var months = Object.keys(monthItems).sort().reverse();
-      var container = document.getElementById('history-list');
-      if (months.length === 0) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-8 text-xs">Nenhum mês com registros</p>';
-        return;
-      }
-      container.innerHTML = '';
-
-      months.forEach(function(prefix) {
-        var items = monthItems[prefix];
-        var inc = 0, exp = 0;
-        items.forEach(function(x) {
-          if (x.item.type === 'income') inc += x.item.amount;
-          else exp += x.item.amount;
-        });
-        var bal = inc - exp;
-        var parts = prefix.split('-');
-        var y = parseInt(parts[0], 10);
-        var m = parseInt(parts[1], 10) - 1;
-        var label = monthNames[m].substring(0, 3) + ' ' + y;
-        var isCurrent = (y === currentDate.getFullYear() && m === currentDate.getMonth());
-        var isExpanded = !!expandedMonths[prefix];
-
-        var wrap = document.createElement('div');
-        wrap.className = 'border-b border-slate-100 last:border-b-0';
-
-        var header = document.createElement('div');
-        header.className = 'grid grid-cols-4 gap-1 px-2.5 py-2.5 items-center text-[11px] cursor-pointer ' +
-          (isCurrent ? 'bg-gray-100' : 'active:bg-slate-50');
-        header.innerHTML =
-          '<div class="font-semibold flex items-center gap-1 ' + (isCurrent ? 'text-black' : 'text-slate-700') + '">' +
-            '<i class="fas fa-chevron-' + (isExpanded ? 'down' : 'right') + ' text-[8px] text-slate-400" style="width:8px"></i>' +
-            label +
-          '</div>' +
-          '<div class="text-right text-black font-medium">' + formatCurrency(inc) + '</div>' +
-          '<div class="text-right text-red-500 font-medium">' + formatCurrency(exp) + '</div>' +
-          '<div class="text-right font-bold ' + (bal >= 0 ? 'text-black' : 'text-red-600') + '">' + formatCurrency(bal) + '</div>';
-
-        header.addEventListener('click', function() {
-          expandedMonths[prefix] = !expandedMonths[prefix];
-          renderHistory();
-        });
-
-        wrap.appendChild(header);
-
-        if (isExpanded) {
-          var detail = document.createElement('div');
-          detail.className = 'bg-slate-50 px-2.5 py-2 space-y-1.5';
-
-          var sorted = items.slice().sort(function(a, b) {
-            return a.dateKey < b.dateKey ? 1 : -1;
-          });
-
-          sorted.forEach(function(x) {
-            var it = x.item;
-            var d = parseKey(x.dateKey);
-            var dayLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            var cats = it.type === 'income' ? INCOME_CATS : EXPENSE_CATS;
-            var cat = cats[it.category] || cats['Outros'];
-            var isIncome = it.type === 'income';
-            var line = document.createElement('div');
-            line.className = 'flex items-center justify-between text-[10px]';
-            line.innerHTML =
-              '<span class="flex items-center gap-1 min-w-0 flex-1 mr-2">' +
-                '<span class="text-slate-400 font-medium shrink-0">' + dayLabel + '</span>' +
-                '<span class="shrink-0">' + cat.icon + '</span>' +
-                '<span class="truncate text-slate-700">' + it.desc + '</span>' +
-              '</span>' +
-              '<span class="font-semibold shrink-0 ' + (isIncome ? 'text-black' : 'text-red-500') + '">' +
-                (isIncome ? '+ ' : '− ') + formatCurrency(it.amount) +
-              '</span>';
-            detail.appendChild(line);
-          });
-
-          var navBtn = document.createElement('button');
-          navBtn.className = 'w-full text-black text-[10px] font-medium py-1.5 mt-1 border-t border-slate-200 flex items-center justify-center gap-1';
-          navBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Ver este mês no calendário';
-          navBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentDate = new Date(y, m, 1);
-            var lastDate = null;
-            items.forEach(function(x) {
-              if (!lastDate || x.dateKey > lastDate) lastDate = x.dateKey;
-            });
-            selectedDate = lastDate || toKey(y, m, 1);
-            document.getElementById('tab-calendario').click();
-            renderCalendar();
-            renderDayPanel();
-          });
-          detail.appendChild(navBtn);
-
-          wrap.appendChild(detail);
-        }
-
-        container.appendChild(wrap);
+    function renderMarks() {
+      markersContainer.innerHTML = '';
+      marks.forEach((mark, index) => {
+        const span = document.createElement('span');
+        span.className = 'marker';
+        span.style.left = `${mark.x}%`;
+        span.style.top = `${mark.y}%`;
+        span.style.borderColor = getTypeColor(mark.type);
+        span.style.color = getTypeColor(mark.type);
+        span.textContent = index + 1;
+        markersContainer.appendChild(span);
       });
     }
 
-    var modal = document.getElementById('modal');
-    var form = document.getElementById('form');
+    function renderDamageList() {
+      listContainer.innerHTML = '';
 
-    function setType(type) {
-      currentType = type;
-      var incomeBtn = document.getElementById('type-income');
-      var expenseBtn = document.getElementById('type-expense');
-      var header = document.getElementById('modal-header');
-      var submit = document.getElementById('submit-btn');
-      if (type === 'income') {
-        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-black bg-gray-100 text-black font-medium text-sm flex items-center justify-center gap-2';
-        expenseBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
-        header.className = 'bg-black px-4 py-3 flex items-center justify-between sticky top-0';
-        submit.className = 'flex-1 py-2.5 rounded-xl bg-black text-white font-medium text-sm';
-      } else {
-        expenseBtn.className = 'py-2.5 rounded-xl border-2 border-red-300 bg-red-50 text-red-600 font-medium text-sm flex items-center justify-center gap-2';
-        incomeBtn.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-400 font-medium text-sm flex items-center justify-center gap-2';
-        header.className = 'bg-red-500 px-4 py-3 flex items-center justify-between sticky top-0';
-        submit.className = 'flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium text-sm';
+      if (marks.length === 0) {
+        listContainer.innerHTML = `
+          <p class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-[12px] text-gray-500">
+            Nenhuma variação marcada. Escolha o tipo e toque no carro para registrar.
+          </p>
+        `;
+        return;
       }
-      fillCategories();
-    }
 
-    function openModal(editId) {
-      document.getElementById('item-id').value = editId || '';
-      document.getElementById('modal-title').textContent = editId ? 'Editar Registro' : 'Novo Registro';
-      var dateInput = document.getElementById('item-date');
-      if (editId) {
-        var found = null, foundKey = null;
-        Object.keys(data).forEach(function(key) {
-          data[key].forEach(function(item) {
-            if (item.id === editId) { found = item; foundKey = key; }
-          });
-        });
-        if (found) {
-          setType(found.type);
-          document.getElementById('item-desc').value = found.desc;
-          document.getElementById('item-amount').value = found.amount;
-          dateInput.value = foundKey;
-          fillCategories();
-          document.getElementById('item-category').value = found.category;
-        }
-      } else {
-        form.reset();
-        document.getElementById('item-id').value = '';
-        setType('income');
-        dateInput.value = selectedDate || toKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-      }
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-    function closeModal() {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
+      const ul = document.createElement('ul');
+      ul.className = "mt-4 space-y-2";
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var id = document.getElementById('item-id').value;
-      var desc = document.getElementById('item-desc').value.trim();
-      var amount = parseFloat(document.getElementById('item-amount').value);
-      var category = document.getElementById('item-category').value;
-      var dateKey = document.getElementById('item-date').value;
-      if (!dateKey) { showToast('Escolha uma data'); return; }
-      if (!data[dateKey]) data[dateKey] = [];
-      if (id) {
-        Object.keys(data).forEach(function(key) {
-          data[key] = data[key].filter(function(item) {
-            if (item.id === id) return key === dateKey;
-            return true;
-          });
-          if (data[key].length === 0) delete data[key];
-        });
-        var existing = (data[dateKey] || []).find(function(i) { return i.id === id; });
-        if (existing) {
-          existing.desc = desc; existing.amount = amount; existing.category = category; existing.type = currentType;
-        } else {
-          if (!data[dateKey]) data[dateKey] = [];
-          data[dateKey].push({ id: id, desc: desc, amount: amount, category: category, type: currentType, timestamp: Date.now() });
-        }
-        showToast('Registro atualizado!');
-      } else {
-        data[dateKey].push({
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-          desc: desc, amount: amount, category: category, type: currentType, timestamp: Date.now()
-        });
-        showToast(currentType === 'income' ? 'Ganho adicionado!' : 'Gasto adicionado!');
-      }
-      selectedDate = dateKey;
-      var d = parseKey(dateKey);
-      currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
-      saveData();
-      closeModal();
-      renderCalendar();
-      renderDayPanel();
-    });
+      marks.forEach((mark, index) => {
+        const li = document.createElement('li');
+        li.className = "flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2";
 
-    function editItem(id) { openModal(id); }
-    function deleteItem(id) {
-      if (!confirm('Excluir este registro?')) return;
-      Object.keys(data).forEach(function(key) {
-        data[key] = data[key].filter(function(e) { return e.id !== id; });
-        if (data[key].length === 0) delete data[key];
+        const options = damageTypes.map(tipo => 
+          `<option value="${tipo.key}" ${mark.type === tipo.key ? 'selected' : ''}>${tipo.label}</option>`
+        ).join('');
+
+        li.innerHTML = `
+          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums" 
+                style="border-color: ${getTypeColor(mark.type)}; color: ${getTypeColor(mark.type)};">
+            ${index + 1}
+          </span>
+          <span class="min-w-0 flex-1 truncate text-[13px] text-gray-900">Avaria ${index + 1}</span>
+          <select class="rounded-md border border-gray-200 bg-white px-2 py-1 text-[12px] text-gray-900 focus:border-gray-400 focus:outline-none" 
+                  onchange="updateMarkType('${mark.id}', this.value)">
+            ${options}
+          </select>
+          <button type="button" onclick="removeMark('${mark.id}')" 
+                  class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900">
+            <i data-lucide="x" class="h-4 w-4"></i>
+          </button>
+        `;
+        ul.appendChild(li);
       });
-      saveData();
-      renderCalendar();
-      renderDayPanel();
-      showToast('Registro excluído');
+
+      listContainer.appendChild(ul);
+      lucide.createIcons(); 
     }
 
-    document.getElementById('prev-month').addEventListener('click', function() {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      expandedCategory = null;
-      renderCalendar();
-    });
-    document.getElementById('next-month').addEventListener('click', function() {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      expandedCategory = null;
-      renderCalendar();
-    });
-    document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
-    document.getElementById('close-modal').addEventListener('click', closeModal);
-    document.getElementById('cancel-modal').addEventListener('click', closeModal);
-    modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
-    document.getElementById('type-income').addEventListener('click', function() { setType('income'); });
-    document.getElementById('type-expense').addEventListener('click', function() { setType('expense'); });
-    document.getElementById('tab-expense').addEventListener('click', function() {
-      summaryTab = 'expense';
-      expandedCategory = null;
-      this.className = 'px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium';
-      document.getElementById('tab-income').className = 'px-1.5 py-0.5 rounded text-slate-400';
-      renderCategoriesSummary();
-    });
-    document.getElementById('tab-income').addEventListener('click', function() {
-      summaryTab = 'income';
-      expandedCategory = null;
-      this.className = 'px-1.5 py-0.5 rounded bg-gray-200 text-black font-medium';
-      document.getElementById('tab-expense').className = 'px-1.5 py-0.5 rounded text-slate-400';
-      renderCategoriesSummary();
+    mapContainer.addEventListener('click', (event) => {
+      const rect = mapContainer.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+      marks.push({ id: Date.now().toString(), x: parseFloat(x.toFixed(2)), y: parseFloat(y.toFixed(2)), type: selectedDamageType });
+      renderAllDamage();
     });
 
-    var today = new Date();
-    selectedDate = toKey(today.getFullYear(), today.getMonth(), today.getDate());
-    renderCalendar();
-    renderDayPanel();
-    renderAccountBalance();
+    window.updateMarkType = function(id, newType) {
+      const mark = marks.find(m => m.id === id);
+      if (mark) { mark.type = newType; renderAllDamage(); }
+    };
 
-    history.pushState({ page: 'home' }, '');
+    window.removeMark = function(id) {
+      marks = marks.filter(m => m.id !== id);
+      renderAllDamage();
+    };
 
-    let backCount = 0;
-    window.addEventListener('popstate', function(e) {
-      if (!modal.classList.contains('hidden')) {
-        closeModal();
-        history.pushState({ page: 'home' }, '');
-        backCount = 0;
-        return;
-      }
-      if (!balanceModal.classList.contains('hidden')) {
-        closeBalanceModal();
-        history.pushState({ page: 'home' }, '');
-        backCount = 0;
-        return;
-      }
-      if (!document.getElementById('view-historico').classList.contains('hidden')) {
-        document.getElementById('tab-calendario').click();
-        history.pushState({ page: 'home' }, '');
-        backCount = 0;
-        return;
-      }
-      backCount++;
-      if (backCount < 2) {
-        showToast('Pressione voltar novamente para sair');
-        history.pushState({ page: 'home' }, '');
-        setTimeout(function() { backCount = 0; }, 2000);
-      }
-    });
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(function() {});
+    function renderAllDamage() {
+      renderMarks();
+      renderDamageList();
     }
+
+    // Inicialização Geral
+    renderVehicleFields();
+    renderChecklist();
+    renderDamageButtons();
+    renderAllDamage();
+
   </script>
 </body>
 </html>

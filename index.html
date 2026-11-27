@@ -121,24 +121,31 @@ const np=()=>{cv=document.createElement('canvas');cv.width=W;cv.height=HT;x=cv.g
 np();
 x.font='bold 44px sans-serif';x.fillText('Vistoria de entrada',M,y);y+=80;x.font='24px sans-serif';
 F.forEach(([k,l],i)=>x.fillText(fit(x,l+': '+(k=='data'?fd(H[k]):H[k]||'—'),357),M+(i%3)*373,y+Math.floor(i/3)*42));
-y+=Math.ceil(F.length/3)*42+30;
-const ps=VW.filter(([k])=>c.ph[k]);
+y+=Math.ceil(F.length/3)*42+24;
+/* 1) legenda das marcações das fotos (topo) */
+x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText('Legenda das marcações nas fotos',M,y);y+=34;
+ks.forEach((k,n)=>{const lx=M+n*220;bub(x,lx+16,y+12,16,T[k][1],n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(T[k][0],lx+42,y)});y+=54;
+/* 2) peças marcadas: calcula a altura antes para encaixar as fotos na mesma página */
+x.font='22px sans-serif';
+const bl=ks.map((k,n)=>{const a=PG.flatMap(g=>g[1]).filter(p=>c.pc[p]==k);return a.length?{k,ls:wrap(x,T[k][0]+': '+a.join(' · '),W-2*M-50)}:null}).filter(Boolean);
+const PH=bl.length?58+bl.reduce((t,b)=>t+b.ls.length*30+14,0):0,SG=190;
+/* 3) fotos: tamanho ajustado para tudo caber em uma página */
+const ps=VW.filter(([k])=>c.ph[k]),rows=Math.max(1,Math.ceil(ps.length/3));
+const ch=Math.max(110,Math.min(270,Math.floor((HT-M-y-PH-SG)/rows)-40)),cw=ch*4/3,gap=Math.max(10,(W-2*M-3*cw)/2),rh=ch+40;
 for(let i=0;i<ps.length;i++){
- if(i%3==0)need(330);
- const[k,l]=ps[i],px=M+(i%3)*380,py=y,by=py+30,im=await ld(c.ph[k]);
- x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText(l,px,py);x.strokeStyle='#999';x.lineWidth=2;x.strokeRect(px,by,360,270);
- const s=Math.min(360/im.width,270/im.height),dw=im.width*s,dh=im.height*s;x.drawImage(im,px+(360-dw)/2,by+(270-dh)/2,dw,dh);
- c.mk.forEach(m=>{if(m.v!=k)return;const mx=px+m.x*3.6,my=by+m.y*2.7;bub(x,mx,my,16,T[m.t][1],ks.indexOf(m.t)+1);
+ if(i%3==0)need(rh);
+ const[k,l]=ps[i],px=M+(i%3)*(cw+gap),py=y,by=py+30,im=await ld(c.ph[k]);
+ x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText(l,px,py);x.strokeStyle='#999';x.lineWidth=2;x.strokeRect(px,by,cw,ch);
+ const s=Math.min(cw/im.width,ch/im.height),dw=im.width*s,dh=im.height*s;x.drawImage(im,px+(cw-dw)/2,by+(ch-dh)/2,dw,dh);
+ c.mk.forEach(m=>{if(m.v!=k)return;const mx=px+m.x/100*cw,my=by+m.y/100*ch;bub(x,mx,my,16,T[m.t][1],ks.indexOf(m.t)+1);
   if(m.p){x.font='14px sans-serif';const w=x.measureText(m.p).width+10,lx=m.x>55?mx-22-w:mx+22;x.fillStyle='#000';x.fillRect(lx,my-11,w,22);x.fillStyle='#fff';x.textBaseline='middle';x.fillText(m.p,lx+5,my+1);x.textBaseline='top'}});
- if(i%3==2||i==ps.length-1)y+=330}
-need(60);ks.forEach((k,n)=>{const lx=M+n*220;bub(x,lx+16,y+12,16,T[k][1],n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(T[k][0],lx+42,y)});y+=60;
-const gs=PG.map(([g,a])=>[g,a.filter(p=>c.pc[p])]).filter(([,a])=>a.length);
-if(gs.length){need(80);x.fillStyle='#000';x.font='bold 32px sans-serif';x.fillText('Peças marcadas',M,y);y+=48;
- gs.forEach(([g,a])=>{const rows=Math.ceil(a.length/2);need(44+rows*40);
-  x.fillStyle='#000';x.font='bold 24px sans-serif';x.fillText(g,M,y);x.fillStyle='#bbb';x.fillRect(M,y+32,W-2*M,2);y+=44;
-  a.forEach((p,i)=>{const k=c.pc[p],px=M+(i%2)*580,py=y+Math.floor(i/2)*40;bub(x,px+16,py+18,15,T[k][1],ks.indexOf(k)+1);x.fillStyle='#000';x.font='22px sans-serif';x.fillText(fit(x,p,500),px+44,py+6)});
-  y+=rows*40+14})}
-need(200);if(c.sig){const im=await ld(c.sig);x.drawImage(im,M,y,im.width/im.height*130,130)}
+ if(i%3==2||i==ps.length-1)y+=rh}
+/* 4) peças marcadas (abaixo das fotos) */
+if(bl.length){need(PH);x.fillStyle='#000';x.font='bold 30px sans-serif';x.fillText('Peças marcadas',M,y);y+=48;
+ x.fillStyle='#bbb';x.fillRect(M,y-8,W-2*M,2);
+ bl.forEach(b=>{bub(x,M+16,y+14,15,T[b.k][1],ks.indexOf(b.k)+1);x.fillStyle='#000';x.font='22px sans-serif';b.ls.forEach((t,j)=>x.fillText(t,M+50,y+3+j*30));y+=b.ls.length*30+14})}
+/* assinatura */
+need(SG);if(c.sig){const im=await ld(c.sig);x.drawImage(im,M,y,im.width/im.height*130,130)}
 y+=140;x.fillStyle='#000';x.font='24px sans-serif';x.fillText('Assinatura do cliente: '+(H.nome||'')+' — '+fd(H.data),M,y);
 return pages}
 function mkpdf(cvs){const e=new TextEncoder(),P=[],off=[];let n=0;

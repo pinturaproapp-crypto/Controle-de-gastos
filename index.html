@@ -51,7 +51,7 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <div id="app">
 <div id="ls"><div class="bar"><h1 style="flex:1">Vistorias</h1><button class="p" onclick="nw()">Nova vistoria</button></div><div class="w" id="li"></div></div>
 <div id="ed" hidden>
-<div class="bar"><button onclick="home()">← Lista</button><span id="st">salvo</span><button class="p" onclick="pdf()">Gerar PDF</button></div>
+<div class="bar"><button onclick="home()">← Lista</button><span id="st">salvo</span><button class="p" onclick="bx()">Baixar PDF</button><button class="p" style="background:#25d366;border-color:#25d366" onclick="wa()">WhatsApp</button></div>
 <div class="w">
 <div class="card" id="hdc"><div id="hd"></div></div>
 
@@ -123,4 +123,29 @@ $('#rep').innerHTML=`<h1>Vistoria de entrada</h1><div class="rg">${F.map(([k,l])
 <div class="lg">${Object.entries(T).map(([k,[l,col]],n)=>`<span><i class="bb" style="color:${col}">${n+1}</i>${l}</span>`).join('')}</div>
 ${c.sig?`<img class="sg2" src="${c.sig}">`:''}<p>Assinatura do cliente: ${esc(H.nome||'')} — ${fd(H.data)}</p>`;
 document.title='Vistoria OS '+(H.os||'')+' '+(H.placa||'');print();document.title=old}
+/* PDF em arquivo: baixar ou compartilhar */
+const ld=s=>new Promise(r=>{const i=new Image;i.onload=()=>r(i);i.src=s});
+const bub=(x,cx,cy,r,col,n)=>{x.beginPath();x.arc(cx,cy,r,0,7);x.fillStyle='#000';x.fill();x.strokeStyle=col;x.lineWidth=3;x.stroke();x.fillStyle=col;x.font='bold '+r+'px monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(n,cx,cy+1);x.textAlign='left';x.textBaseline='top'};
+async function rpt(){const c=cur,H=c.hdr,cv=document.createElement('canvas');cv.width=1240;cv.height=1754;const x=cv.getContext('2d');
+x.fillStyle='#fff';x.fillRect(0,0,1240,1754);x.fillStyle='#000';x.textBaseline='top';x.font='bold 44px sans-serif';x.fillText('Vistoria de entrada',60,60);x.font='24px sans-serif';
+F.forEach(([k,l],i)=>{const t=l+': '+(k=='data'?fd(H[k]):H[k]||'—');let s=t;while(x.measureText(s).width>357&&s.length>3)s=s.slice(0,-2);x.fillText(s==t?s:s+'…',60+(i%3)*373,140+Math.floor(i/3)*42)});
+const ps=VW.filter(([k])=>c.ph[k]);
+for(let i=0;i<ps.length;i++){const[k,l]=ps[i],px=60+(i%3)*380,py=340+Math.floor(i/3)*330,by=py+30,im=await ld(c.ph[k]);
+x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText(l,px,py);x.strokeStyle='#999';x.lineWidth=2;x.strokeRect(px,by,360,270);
+const s=Math.min(360/im.width,270/im.height),dw=im.width*s,dh=im.height*s;x.drawImage(im,px+(360-dw)/2,by+(270-dh)/2,dw,dh);
+c.mk.forEach(m=>{if(m.v==k)bub(x,px+m.x*3.6,by+m.y*2.7,16,T[m.t][1],Object.keys(T).indexOf(m.t)+1)})}
+Object.entries(T).forEach(([k,[l,col]],n)=>{const lx=60+n*220;bub(x,lx+16,1370,16,col,n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(l,lx+42,1358)});
+if(c.sig){const im=await ld(c.sig);x.drawImage(im,60,1430,im.width/im.height*170,170)}
+x.fillStyle='#000';x.font='24px sans-serif';x.fillText('Assinatura do cliente: '+(H.nome||'')+' — '+fd(H.data),60,1620);return cv}
+function mkpdf(cv){const jb=Uint8Array.from(atob(cv.toDataURL('image/jpeg',.88).split(',')[1]),c=>c.charCodeAt(0)),e=new TextEncoder(),P=[],off=[];let n=0;
+const add=(...a)=>a.forEach(b=>{b=typeof b=='string'?e.encode(b):b;P.push(b);n+=b.length}),o=(i,s)=>{off[i]=n;add(i+' 0 obj\n'+s+'\nendobj\n')};
+add('%PDF-1.4\n');o(1,'<</Type/Catalog/Pages 2 0 R>>');o(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');
+o(3,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<</XObject<</I 4 0 R>>>>/Contents 5 0 R>>');
+off[4]=n;add('4 0 obj\n<</Type/XObject/Subtype/Image/Width '+cv.width+'/Height '+cv.height+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+jb.length+'>>\nstream\n',jb,'\nendstream\nendobj\n');
+const ct='q 595 0 0 842 0 0 cm /I Do Q';o(5,'<</Length '+ct.length+'>>\nstream\n'+ct+'\nendstream');
+const xr=n;add('xref\n0 6\n0000000000 65535 f \n'+[1,2,3,4,5].map(i=>String(off[i]).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF');
+return new Blob(P,{type:'application/pdf'})}
+async function pf(){const s=$('#st'),t=s.textContent;s.textContent='gerando PDF…';const f=new File([mkpdf(await rpt())],'Vistoria OS '+(cur.hdr.os||'')+' '+(cur.hdr.placa||'')+'.pdf',{type:'application/pdf'});s.textContent=t;return f}
+async function bx(){const f=await pf(),a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+async function wa(){const f=await pf();if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:f.name})}catch(e){}}else{await bx();alert('Este navegador não abre o compartilhamento. O PDF foi baixado: anexe-o no WhatsApp.')}}
 </script></body></html>

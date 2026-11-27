@@ -49,22 +49,22 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <div class="card" id="hdc"><div id="hd"></div></div>
 
 <div class="card" style="padding:14px 10px"><h2>Mapa de avarias</h2><div class="ch" id="tp"></div><div class="ch" id="vw"></div><div id="pa"></div></div>
-<div class="card" style="padding:14px 10px"><h2>Peças</h2><p class="mu" style="margin:-6px 0 8px">Escolha uma opção (1 a 5) e toque em cada peça para marcá-la.</p><div class="ch" id="tp2"></div><div id="pl"></div></div>
+<div class="card" style="padding:14px 10px"><h2>Peças</h2><p class="mu" style="margin:-6px 0 8px">Escolha uma opção (1 a 4) e toque em cada peça para marcá-la.</p><div class="ch" id="tp2"></div><div id="pl"></div></div>
 
 <div class="card"><h2>Assinatura do cliente</h2><canvas id="sg"></canvas><button class="sm" onclick="clr()">Limpar assinatura</button></div>
 </div></div></div>
 <input type="file" id="fi" accept="image/*" capture="environment" hidden>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),fd=d=>d?d.split('-').reverse().join('/'):'';
-const T={arranhado:['Arranhado','#fb923c'],amassado:['Amassado','#38bdf8'],riscado:['Riscado','#facc15'],bom:['Bom','#4ade80'],ruim:['Ruim','#f87171']};
+const T={amassado:['Amassado','#38bdf8'],riscado:['Riscado','#facc15'],bom:['Bom','#4ade80'],ruim:['Ruim','#f87171']};
 const VW=[['frente','Frente'],['le','Lateral esq.'],['ld','Lateral dir.'],['tras','Traseira'],['topo','Topo'],['painel','Painel / km'],['int','Interior']],VL=Object.fromEntries(VW),SH={frente:'Frente',le:'Esq.',ld:'Dir.',tras:'Traseira',topo:'Topo',painel:'Painel',int:'Interior'};
 const F=[['nome','Nome do cliente',0,'Nome do cliente'],['cpf','CPF',0,'000.000.000-00'],['tel','Telefone',0,'(11) 90000-0000'],['data','Data entrada',0,'','date'],['os','Nº OS',0,'','number'],['veic','Veículo',0,'Gol 1.6 - 2019'],['placa','Placa',0,'ABC-1D23'],['ano','Ano',0,'2019'],['cor','Cor',0,'Prata'],['km','KM',0,'84.320'],['seg','Seguradora',0,'Se houver'],['end','Endereço',0,'Rua, número, bairro']];
-const R=[[['nome','cpf','tel'],'1.1fr 1fr 1fr'],[['data','os','veic','placa'],'2.6fr 1fr 2fr 2fr'],[['ano','cor','km','seg'],'1.5fr 1.9fr 1.7fr 2.4fr'],[['end'],'1fr']];
+const R=[[['nome'],'1fr'],[['cpf','tel'],'1fr 1fr'],[['data','os','veic','placa'],'2.6fr 1fr 2fr 2fr'],[['ano','cor','km','seg'],'1.5fr 1.9fr 1.7fr 2.4fr'],[['end'],'1fr']];
 const D=v=>v.replace(/\D/g,'');
 const MK={cpf:v=>{const d=D(v).slice(0,11);return[d.slice(0,3),d.slice(3,6),d.slice(6,9)].filter(Boolean).join('.')+(d.length>9?'-'+d.slice(9):'')},
 tel:v=>{const d=D(v).slice(0,11);return d.length>2?'('+d.slice(0,2)+') '+d.slice(2,7)+(d.length>7?'-'+d.slice(7):''):d},
 placa:v=>v.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,8)};
-let db,cur,vw='frente',ty='arranhado',tm,dirty=0,pend,pt='',tb='bom';
+let db,cur,vw='frente',ty='amassado',tm,dirty=0,pend,pt='',tb='bom';
 const PG=[['Frente',['Para-choque dianteiro','Grade / emblema','Farol esquerdo e direito','Milha / farol de neblina','Capô','Para-brisa']],
 ['Traseira',['Para-choque traseiro','Tampa do porta-malas','Lanterna esquerda e direita','Vidro traseiro','Placa / emblema']],
 ['Lateral esquerda e direita',['Para-lama dianteiro','Porta dianteira','Porta traseira','Lateral traseira','Coluna (A, B e C)','Soleira / caixa de ar','Retrovisor','Vidros das portas','Maçanetas','Rodas e calotas (4)']],
@@ -82,7 +82,7 @@ const a=(await q('readonly',s=>s.getAll())).sort((a,b)=>b.upd-a.upd);
 $('#li').innerHTML=a.map(v=>`<div class="card r" onclick="op(${v.id})" style="cursor:pointer"><div style="flex:1"><b>OS ${esc(v.hdr.os)} · ${esc(v.hdr.nome||'Sem nome')}</b><br><small>${esc(v.hdr.veic||'')} ${esc(v.hdr.placa||'')} · ${v.mk.length} avaria(s) · ${fd(v.hdr.data)}</small></div><button class="sm" onclick="event.stopPropagation();del(${v.id})">Excluir</button></div>`).join('')||'<p class="mu">Nenhuma vistoria ainda. Toque em “Nova vistoria”.</p>'}
 async function nw(){const a=await q('readonly',s=>s.getAll());op({id:Date.now(),upd:Date.now(),hdr:{data:new Date().toLocaleDateString('sv'),os:a.reduce((m,v)=>Math.max(m,+v.hdr.os||0),0)+1},chk:{},ph:{},mk:[],sig:''})}
 async function del(id){if(confirm('Excluir esta vistoria?')){await q('readwrite',s=>s.delete(id));home()}}
-async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);cur.pc=cur.pc||{};const MG={risco:'riscado',trinca:'arranhado',quebrado:'ruim',ferrugem:'ruim',ok:'bom'},mg=k=>MG[k]||k;cur.mk.forEach(m=>m.t=mg(m.t));Object.keys(cur.pc).forEach(p=>cur.pc[p]=mg(cur.pc[p]));hd();pt='';pa();sg()}
+async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);cur.pc=cur.pc||{};const MG={risco:'riscado',trinca:'riscado',arranhado:'riscado',quebrado:'ruim',ferrugem:'ruim',ok:'bom'},mg=k=>MG[k]||k;cur.mk.forEach(m=>m.t=mg(m.t));Object.keys(cur.pc).forEach(p=>cur.pc[p]=mg(cur.pc[p]));hd();pt='';pa();sg()}
 /* cabeçalho */
 function hd(){$('#hd').innerHTML=R.map(([ks,c])=>`<div class="g" style="grid-template-columns:${c}">${ks.map(k=>{const[,l,,p,t]=F.find(f=>f[0]==k);return`<label>${l}<input data-k="${k}" type="${t||'text'}" ${t=='number'?'inputmode="numeric"':''} placeholder="${p||''}" value="${esc(cur.hdr[k]||'')}"></label>`}).join('')}</div>`).join('')}
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;if(MK[k])e.target.value=MK[k](e.target.value);cur.hdr[k]=e.target.value;sv()});
@@ -120,15 +120,16 @@ const c=cur,H=c.hdr,W=1240,HT=1754,M=60,pages=[],ks=Object.keys(T);let cv,x,y;
 const np=()=>{cv=document.createElement('canvas');cv.width=W;cv.height=HT;x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,HT);x.fillStyle='#000';x.textBaseline='top';pages.push(cv);y=M},need=h=>{if(y+h>HT-M)np()};
 np();
 x.font='bold 44px sans-serif';x.fillText('Vistoria de entrada',M,y);y+=80;x.font='24px sans-serif';
-F.forEach(([k,l],i)=>x.fillText(fit(x,l+': '+(k=='data'?fd(H[k]):H[k]||'—'),357),M+(i%3)*373,y+Math.floor(i/3)*42));
-y+=Math.ceil(F.length/3)*42+24;
+[[['nome'],[1120]],[['cpf','tel','data'],[373,373,374]],[['os','veic','placa'],[240,640,240]],[['ano','cor','km','seg'],[200,280,240,400]],[['end'],[1120]]].forEach(([ks2,ws])=>{let hx=M;ks2.forEach((k,j)=>{const l=F.find(f=>f[0]==k)[1];x.fillStyle='#000';x.font='24px sans-serif';x.fillText(fit(x,l+': '+(k=='data'?fd(H[k]):H[k]||'—'),ws[j]-14),hx,y);hx+=ws[j]});y+=42});
+y+=12;
 /* 1) legenda das marcações das fotos (topo) */
 x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText('Legenda das marcações nas fotos',M,y);y+=34;
 ks.forEach((k,n)=>{const lx=M+n*220;bub(x,lx+16,y+12,16,T[k][1],n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(T[k][0],lx+42,y)});y+=54;
 /* 2) peças marcadas: calcula a altura antes para encaixar as fotos na mesma página */
 x.font='22px sans-serif';
-const bl=ks.map((k,n)=>{const a=PG.flatMap(g=>g[1]).filter(p=>c.pc[p]==k);return a.length?{k,ls:wrap(x,T[k][0]+': '+a.join(' · '),W-2*M-50)}:null}).filter(Boolean);
-const PH=bl.length?58+bl.reduce((t,b)=>t+b.ls.length*30+14,0):0,SG=190;
+const its=PG.flatMap(g=>g[1]).filter(p=>c.pc[p]).map(p=>({p,k:c.pc[p],w:36+Math.ceil(x.measureText(p).width)+26}));
+let nl=1,cx=0;its.forEach(it=>{if(cx&&cx+it.w>W-2*M){nl++;cx=0}it.l=nl-1;it.x=cx;cx+=it.w});
+const PH=its.length?46+40+12+nl*42+10:0,SG=190;
 /* 3) fotos: tamanho ajustado para tudo caber em uma página */
 const ps=VW.filter(([k])=>c.ph[k]),rows=Math.max(1,Math.ceil(ps.length/3));
 const ch=Math.max(110,Math.min(270,Math.floor((HT-M-y-PH-SG)/rows)-40)),cw=ch*4/3,gap=Math.max(10,(W-2*M-3*cw)/2),rh=ch+40;
@@ -140,10 +141,11 @@ for(let i=0;i<ps.length;i++){
  c.mk.forEach(m=>{if(m.v!=k)return;const mx=px+m.x/100*cw,my=by+m.y/100*ch;bub(x,mx,my,16,T[m.t][1],ks.indexOf(m.t)+1);
   if(m.p){x.font='14px sans-serif';const w=x.measureText(m.p).width+10,lx=m.x>55?mx-22-w:mx+22;x.fillStyle='#000';x.fillRect(lx,my-11,w,22);x.fillStyle='#fff';x.textBaseline='middle';x.fillText(m.p,lx+5,my+1);x.textBaseline='top'}});
  if(i%3==2||i==ps.length-1)y+=rh}
-/* 4) peças marcadas (abaixo das fotos) */
-if(bl.length){need(PH);x.fillStyle='#000';x.font='bold 30px sans-serif';x.fillText('Peças marcadas',M,y);y+=48;
- x.fillStyle='#bbb';x.fillRect(M,y-8,W-2*M,2);
- bl.forEach(b=>{bub(x,M+16,y+14,15,T[b.k][1],ks.indexOf(b.k)+1);x.fillStyle='#000';x.font='22px sans-serif';b.ls.forEach((t,j)=>x.fillText(t,M+50,y+3+j*30));y+=b.ls.length*30+14})}
+/* 4) peças marcadas: legenda própria + número na frente de cada peça */
+if(its.length){need(PH);x.fillStyle='#000';x.font='bold 30px sans-serif';x.fillText('Peças marcadas',M,y);y+=46;
+ ks.forEach((k,n)=>{const lx=M+n*220;bub(x,lx+14,y+12,14,T[k][1],n+1);x.fillStyle='#000';x.font='22px sans-serif';x.fillText(T[k][0],lx+38,y+1)});y+=40;
+ x.fillStyle='#bbb';x.fillRect(M,y-2,W-2*M,2);y+=10;
+ its.forEach(it=>{const iy=y+it.l*42;bub(x,M+it.x+15,iy+16,14,T[it.k][1],ks.indexOf(it.k)+1);x.fillStyle='#000';x.font='22px sans-serif';x.fillText(it.p,M+it.x+38,iy+5)});y+=nl*42}
 /* assinatura */
 need(SG);if(c.sig){const im=await ld(c.sig);x.drawImage(im,M,y,im.width/im.height*130,130)}
 y+=140;x.fillStyle='#000';x.font='24px sans-serif';x.fillText('Assinatura do cliente: '+(H.nome||'')+' — '+fd(H.data),M,y);

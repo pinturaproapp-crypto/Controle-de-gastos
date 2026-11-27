@@ -39,11 +39,14 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 .th{height:56px;border-radius:8px}
 #sg{width:100%;height:150px;background:#fff;border-radius:14px;touch-action:none;display:block;margin-bottom:8px}
 #rep{display:none}
-@media print{@page{margin:12mm}body{background:#fff}#app{display:none}#rep{display:block;color:#000;font:12px/1.45 sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-#rep h1{font-size:20px}#rep h3{margin:16px 0 6px;border-bottom:1px solid #999;padding-bottom:3px}
-.rg,.rp{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}.rp{gap:10px}
-.rg>div,.rp>div,.ra{break-inside:avoid}.ra{margin-bottom:6px}.ra img{height:90px;margin-top:3px}
-#rep .pb{background:#fff;border-color:#999}#rep .mk{background:#fff}.sg2{height:80px;border:1px solid #999}}
+@media print{@page{margin:10mm}body{background:#fff}#app{display:none}#rep{display:block;max-height:275mm;overflow:hidden;color:#000;font:11px/1.4 sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#rep h1{font-size:18px;margin:0 0 8px}
+.rg{display:grid;grid-template-columns:repeat(3,1fr);gap:3px 12px;margin-bottom:10px}
+.rp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.rp>div{break-inside:avoid}.rp b{font-size:10px}
+#rep .pb{background:#fff;border-color:#999;margin-bottom:0}#rep .mk{background:#000}
+.lg{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px}.lg span{display:flex;align-items:center;gap:5px}
+.sg2{height:70px;display:block}}
 </style></head><body>
 <div id="app">
 <div id="ls"><div class="bar"><h1 style="flex:1">Vistorias</h1><button class="p" onclick="nw()">Nova vistoria</button></div><div class="w" id="li"></div></div>
@@ -116,8 +119,8 @@ function clr(){const c=$('#sg');c.getContext('2d').clearRect(0,0,c.width,c.heigh
 /* relatório em PDF (imprimir > salvar como PDF) */
 function pdf(){const c=cur,H=c.hdr,old=document.title;
 $('#rep').innerHTML=`<h1>Vistoria de entrada</h1><div class="rg">${F.map(([k,l])=>`<div><b>${l}:</b> ${esc(k=='data'?fd(H[k]):H[k]||'—')}</div>`).join('')}</div>
-<h3>Fotos e marcações</h3><div class="rp">${VW.filter(([k])=>c.ph[k]).map(([k,l])=>`<div><b>${l}</b><div class="pb"><img src="${c.ph[k]}">${mks(k)}</div></div>`).join('')||'<p>Sem fotos.</p>'}</div>
-<h3>Lista de avarias</h3>${c.mk.length?c.mk.map((m,i)=>`<div class="ra"><b>${Object.keys(T).indexOf(m.t)+1}. ${T[m.t][0]}</b> (${VL[m.v]}) ${esc(m.n)}${m.p?`<br><img src="${m.p}">`:''}</div>`).join(''):'<p>Nenhuma avaria registrada.</p>'}
-<h3>Assinatura do cliente</h3>${c.sig?`<img class="sg2" src="${c.sig}">`:'<p>(sem assinatura)</p>'}<p>${esc(H.nome||'')} — ${fd(H.data)}</p>`;
+<div class="rp">${VW.filter(([k])=>c.ph[k]).map(([k,l])=>`<div><b>${l}</b><div class="pb"><img src="${c.ph[k]}">${mks(k)}</div></div>`).join('')||'<p>Sem fotos.</p>'}</div>
+<div class="lg">${Object.entries(T).map(([k,[l,col]],n)=>`<span><i class="bb" style="color:${col}">${n+1}</i>${l}</span>`).join('')}</div>
+${c.sig?`<img class="sg2" src="${c.sig}">`:''}<p>Assinatura do cliente: ${esc(H.nome||'')} — ${fd(H.data)}</p>`;
 document.title='Vistoria OS '+(H.os||'')+' '+(H.placa||'');print();document.title=old}
 </script></body></html>

@@ -34,6 +34,11 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 .pb img{width:100%;height:100%;object-fit:contain;display:block}
 .pb.e{display:flex;align-items:center;justify-content:center;color:var(--mu);cursor:pointer}
 .mk{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid;background:#000c;font:600 11px monospace;font-style:normal;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.pc{display:grid;gap:5px;margin-bottom:10px}
+.pc button{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;padding:5px 3px;font-size:10.5px;line-height:1.2;min-height:36px;overflow-wrap:anywhere}
+.pc button[style]{border-width:2px}.pc button .bb{position:absolute;top:-7px;right:-5px}.gl{margin:12px 0 6px}
+.pc .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:600}
+.mk u{position:absolute;left:28px;white-space:nowrap;font:10px sans-serif;color:#fff;background:#000b;padding:2px 5px;border-radius:5px;text-decoration:none}.mk.l u{left:auto;right:28px}
 .dm{border-top:1px solid var(--ln);padding:10px 0}.dm .r{margin-bottom:8px}.dm span{flex:1;color:var(--mu)}
 .dm select{width:auto;margin:0}.dm input{margin:0 0 8px}
 .th{height:56px;border-radius:8px}
@@ -56,6 +61,7 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <div class="card" id="hdc"><div id="hd"></div></div>
 
 <div class="card" style="padding:14px 10px"><h2>Mapa de avarias</h2><div class="ch" id="tp"></div><div class="ch" id="vw"></div><div id="pa"></div></div>
+<div class="card" style="padding:14px 10px"><h2>Peças</h2><p class="mu" style="margin:-6px 0 8px">Escolha uma opção (1 a 5) e toque em cada peça para marcá-la.</p><div class="ch" id="tp2"></div><div id="pl"></div></div>
 
 <div class="card"><h2>Assinatura do cliente</h2><canvas id="sg"></canvas><button class="sm" onclick="clr()">Limpar assinatura</button></div>
 </div></div></div>
@@ -63,7 +69,7 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <input type="file" id="fi" accept="image/*" capture="environment" hidden>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),fd=d=>d?d.split('-').reverse().join('/'):'';
-const T={risco:['Risco','#facc15'],amassado:['Amassado','#38bdf8'],trinca:['Trinca','#c084fc'],quebrado:['Quebrado','#f87171'],ferrugem:['Ferrugem','#fb923c']};
+const T={arranhado:['Arranhado','#fb923c'],amassado:['Amassado','#38bdf8'],riscado:['Riscado','#facc15'],bom:['Bom','#4ade80'],ruim:['Ruim','#f87171']};
 const VW=[['frente','Frente'],['le','Lateral esq.'],['ld','Lateral dir.'],['tras','Traseira'],['topo','Topo'],['painel','Painel / km'],['int','Interior']],VL=Object.fromEntries(VW),SH={frente:'Frente',le:'Esq.',ld:'Dir.',tras:'Traseira',topo:'Topo',painel:'Painel',int:'Interior'};
 const F=[['nome','Nome do cliente',0,'Nome do cliente'],['cpf','CPF',0,'000.000.000-00'],['tel','Telefone',0,'(11) 90000-0000'],['data','Data entrada',0,'','date'],['os','Nº OS',0,'','number'],['veic','Veículo',0,'Gol 1.6 - 2019'],['placa','Placa',0,'ABC-1D23'],['ano','Ano',0,'2019'],['cor','Cor',0,'Prata'],['km','KM',0,'84.320'],['seg','Seguradora',0,'Se houver'],['end','Endereço',0,'Rua, número, bairro']];
 const R=[[['nome','cpf','tel'],'1.1fr 1fr 1fr'],[['data','os','veic','placa'],'2.6fr 1fr 2fr 2fr'],[['ano','cor','km','seg'],'1.5fr 1.9fr 1.7fr 2.4fr'],[['end'],'1fr']];
@@ -72,7 +78,13 @@ const MK={cpf:v=>{const d=D(v).slice(0,11);return[d.slice(0,3),d.slice(3,6),d.sl
 tel:v=>{const d=D(v).slice(0,11);return d.length>2?'('+d.slice(0,2)+') '+d.slice(2,7)+(d.length>7?'-'+d.slice(7):''):d},
 placa:v=>v.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,8)};
 const CK=[['Documentação',['Placa e chassi conferidos','CRLV ou autorização','Chave, controle e manual','Quilometragem registrada','Nível de combustível']],['Lataria e pintura',['Para-choques','Capô e portas','Frisos e emblemas','Retrovisores e maçanetas','Pontos de ferrugem']],['Vidros, rodas e iluminação',['Para-brisa e vidros','Palhetas','Pneus, rodas e calotas','Estepe, macaco e chave','Faróis e lanternas']],['Interior e acessórios',['Estofamento e painéis','Tapetes e acabamentos','Itens pessoais retirados','Documentos e valores']],['Mecânica e elétrica',['Níveis de óleo e água','Bateria e terminais','Luzes de painel','Ar condicionado','Rádio e multimídia','Vidros elétricos']],['Fechamento',['Cliente ciente das avarias','Orçamento aprovado','Fotos anexadas','Prazo combinado']]];
-let db,cur,vw='frente',ty='risco',tm,dirty=0,pend;
+let db,cur,vw='frente',ty='arranhado',tm,dirty=0,pend,pt='',tb='bom';
+const PG=[['Frente',['Para-choque dianteiro','Grade / emblema','Farol esquerdo e direito','Milha / farol de neblina','Capô','Para-brisa']],
+['Traseira',['Para-choque traseiro','Tampa do porta-malas','Lanterna esquerda e direita','Vidro traseiro','Placa / emblema']],
+['Lateral esquerda e direita',['Para-lama dianteiro','Porta dianteira','Porta traseira','Lateral traseira','Coluna (A, B e C)','Soleira / caixa de ar','Retrovisor','Vidros das portas','Maçanetas','Rodas e calotas (4)']],
+['Teto e topo',['Teto','Calhas / borrachas do teto','Antena','Teto solar (se tiver)']],
+['Interno',['Painel','Bancos','Forros das portas','Console central','Volante','Tapetes','Porta-malas (assoalho e estepe)']],
+['Mecânica e conferência na entrada',['Combustível','Quilometragem','Pneus (4)','Estepe, macaco e triângulo','Acessórios e pertences']]];
 /* armazenamento */
 const q=(m,f)=>new Promise((ok,no)=>{const t=db.transaction('v',m),r=f(t.objectStore('v'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>no(t.error)});
 const rq=indexedDB.open('vistoria',1);rq.onupgradeneeded=()=>rq.result.createObjectStore('v',{keyPath:'id'});rq.onsuccess=()=>{db=rq.result;home()};
@@ -84,7 +96,7 @@ const a=(await q('readonly',s=>s.getAll())).sort((a,b)=>b.upd-a.upd);
 $('#li').innerHTML=a.map(v=>`<div class="card r" onclick="op(${v.id})" style="cursor:pointer"><div style="flex:1"><b>OS ${esc(v.hdr.os)} · ${esc(v.hdr.nome||'Sem nome')}</b><br><small>${esc(v.hdr.veic||'')} ${esc(v.hdr.placa||'')} · ${v.mk.length} avaria(s) · ${fd(v.hdr.data)}</small></div><button class="sm" onclick="event.stopPropagation();del(${v.id})">Excluir</button></div>`).join('')||'<p class="mu">Nenhuma vistoria ainda. Toque em “Nova vistoria”.</p>'}
 async function nw(){const a=await q('readonly',s=>s.getAll());op({id:Date.now(),upd:Date.now(),hdr:{data:new Date().toLocaleDateString('sv'),os:a.reduce((m,v)=>Math.max(m,+v.hdr.os||0),0)+1},chk:{},ph:{},mk:[],sig:''})}
 async function del(id){if(confirm('Excluir esta vistoria?')){await q('readwrite',s=>s.delete(id));home()}}
-async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);hd();pa();sg()}
+async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);cur.pc=cur.pc||{};const MG={risco:'riscado',trinca:'arranhado',quebrado:'ruim',ferrugem:'ruim',ok:'bom'},mg=k=>MG[k]||k;cur.mk.forEach(m=>m.t=mg(m.t));Object.keys(cur.pc).forEach(p=>cur.pc[p]=mg(cur.pc[p]));hd();pt='';pa();sg()}
 /* cabeçalho */
 function hd(){$('#hd').innerHTML=R.map(([ks,c])=>`<div class="g" style="grid-template-columns:${c}">${ks.map(k=>{const[,l,,p,t]=F.find(f=>f[0]==k);return`<label>${l}<input data-k="${k}" type="${t||'text'}" ${t=='number'?'inputmode="numeric"':''} placeholder="${p||''}" value="${esc(cur.hdr[k]||'')}"></label>`}).join('')}</div>`).join('')}
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;if(MK[k])e.target.value=MK[k](e.target.value);cur.hdr[k]=e.target.value;sv()});
@@ -96,14 +108,18 @@ function all(i){const it=CK[i][1],v=!it.every((_,j)=>cur.chk[i+'.'+j]);it.forEac
 const cmp=(f,M,Q)=>new Promise(r=>{const i=new Image;i.onload=()=>{const s=Math.min(1,M/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(i.src);r(c.toDataURL('image/jpeg',Q))};i.src=URL.createObjectURL(f)});
 const pick=cb=>{pend=cb;$('#fi').click()};
 $('#fi').onchange=e=>{const f=e.target.files[0];if(f&&pend)pend(f);e.target.value=''};
-const mks=v=>cur.mk.map((m,i)=>m.v==v?`<i class="mk" style="left:${m.x}%;top:${m.y}%;color:${T[m.t][1]}">${Object.keys(T).indexOf(m.t)+1}</i>`:'').join('');
-function pa(){$('#tp').innerHTML=Object.entries(T).map(([k,[l,c]],n)=>`<button class="${ty==k?'on':''}" onclick="ty='${k}';pa()"><i class="bb" style="color:${c}">${n+1}</i>${l}</button>`).join('');
-$('#vw').innerHTML=VW.map(([k])=>`<button class="${vw==k?'on':''} ${cur.ph[k]?'ok':''}" onclick="vw='${k}';pa()">${SH[k]}</button>`).join('');
+const mks=v=>cur.mk.map((m,i)=>m.v==v?`<i class="mk${m.x>55?' l':''}" style="left:${m.x}%;top:${m.y}%;color:${T[m.t][1]}">${Object.keys(T).indexOf(m.t)+1}${m.p?`<u>${esc(m.p)}</u>`:''}</i>`:'').join('');
+const bc=k=>T[k][1],bn=k=>Object.keys(T).indexOf(k)+1;
+function pl(){$('#tp2').innerHTML=Object.entries(T).map(([k,[l]])=>`<button class="${tb==k?'on':''}" onclick="tb='${k}';pa()"><i class="bb" style="color:${bc(k)}">${bn(k)}</i>${l}</button>`).join('');
+$('#pl').innerHTML=PG.map(([g,a])=>`<label class="gl">${g}</label><div class="pc" style="grid-template-columns:repeat(${Math.ceil(a.length/2)},1fr)">${a.map(p=>{const k=cur.pc[p];return`<button${k?` style="border-color:${bc(k)}"`:''} data-p="${esc(p)}" onclick="tp(this)">${k?`<i class="bb" style="color:${bc(k)}">${bn(k)}</i>`:''}${p}</button>`}).join('')}</div>`).join('')}
+function tp(b){const p=b.dataset.p;if(cur.pc[p]==tb)delete cur.pc[p];else cur.pc[p]=tb;sv();pl()}
+function pa(){pl();$('#tp').innerHTML=Object.entries(T).map(([k,[l,c]],n)=>`<button class="${ty==k?'on':''}" onclick="ty='${k}';pa()"><i class="bb" style="color:${c}">${n+1}</i>${l}</button>`).join('');
+$('#vw').innerHTML=VW.map(([k])=>`<button class="${vw==k?'on':''} ${cur.ph[k]?'ok':''}" onclick="vw='${k}';pt='';pa()">${SH[k]}</button>`).join('');
 const p=cur.ph[vw];
 $('#pa').innerHTML=p?`<div class="pb" onclick="add(event)" style="cursor:crosshair"><img src="${p}">${mks(vw)}</div><div class="r"><button class="sm" onclick="foto()">Trocar foto</button><button class="sm" onclick="undo()">Desfazer última</button></div><p class="mu" style="margin:8px 0 0">Toque na foto para marcar uma avaria (${T[ty][0]}).</p>`:`<div class="pb e" onclick="foto()">Tirar foto: ${VL[vw]}</div>`}
 function undo(){const i=cur.mk.map(m=>m.v).lastIndexOf(vw);if(i>=0){cur.mk.splice(i,1);sv();pa()}}
 function foto(){pick(async f=>{cur.ph[vw]=await cmp(f,1100,.72);sv();pa()})}
-function add(e){const r=e.currentTarget.getBoundingClientRect();cur.mk.push({x:+((e.clientX-r.left)/r.width*100).toFixed(1),y:+((e.clientY-r.top)/r.height*100).toFixed(1),t:ty,v:vw,n:'',p:''});sv();pa()}
+function add(e){const r=e.currentTarget.getBoundingClientRect();cur.mk.push({x:+((e.clientX-r.left)/r.width*100).toFixed(1),y:+((e.clientY-r.top)/r.height*100).toFixed(1),t:ty,v:vw,n:'',p:pt});sv();pa()}
 function dl(){$('#dl').innerHTML=cur.mk.length?cur.mk.map((m,i)=>`<div class="dm"><div class="r"><b style="color:${T[m.t][1]}">${i+1}</b><span>${VL[m.v]}</span><select onchange="mu(${i},'t',this.value)">${Object.entries(T).map(([k,[l]])=>`<option value="${k}" ${m.t==k?'selected':''}>${l}</option>`).join('')}</select><button class="sm" onclick="rm(${i})">✕</button></div><input placeholder="Observação (ex.: risco de 10 cm na porta)" value="${esc(m.n)}" oninput="mu(${i},'n',this.value,1)"><div class="r">${m.p?`<img class="th" src="${m.p}">`:''}<button class="sm" onclick="cl(${i})">${m.p?'Trocar foto de perto':'Foto de perto'}</button></div></div>`).join(''):'<p class="mu">Nenhuma avaria marcada. Tire a foto de uma vista e toque onde está o dano.</p>'}
 function mu(i,k,v,quiet){cur.mk[i][k]=v;sv();if(!quiet)pa()}
 function rm(i){cur.mk.splice(i,1);sv();pa()}
@@ -133,10 +149,14 @@ const ps=VW.filter(([k])=>c.ph[k]);
 for(let i=0;i<ps.length;i++){const[k,l]=ps[i],px=60+(i%3)*380,py=340+Math.floor(i/3)*330,by=py+30,im=await ld(c.ph[k]);
 x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText(l,px,py);x.strokeStyle='#999';x.lineWidth=2;x.strokeRect(px,by,360,270);
 const s=Math.min(360/im.width,270/im.height),dw=im.width*s,dh=im.height*s;x.drawImage(im,px+(360-dw)/2,by+(270-dh)/2,dw,dh);
-c.mk.forEach(m=>{if(m.v==k)bub(x,px+m.x*3.6,by+m.y*2.7,16,T[m.t][1],Object.keys(T).indexOf(m.t)+1)})}
-Object.entries(T).forEach(([k,[l,col]],n)=>{const lx=60+n*220;bub(x,lx+16,1370,16,col,n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(l,lx+42,1358)});
-if(c.sig){const im=await ld(c.sig);x.drawImage(im,60,1430,im.width/im.height*170,170)}
-x.fillStyle='#000';x.font='24px sans-serif';x.fillText('Assinatura do cliente: '+(H.nome||'')+' — '+fd(H.data),60,1620);return cv}
+c.mk.forEach(m=>{if(m.v!=k)return;const mx=px+m.x*3.6,my=by+m.y*2.7;bub(x,mx,my,16,T[m.t][1],Object.keys(T).indexOf(m.t)+1);
+if(m.p){x.font='14px sans-serif';const w=x.measureText(m.p).width+10,lx=m.x>55?mx-22-w:mx+22;x.fillStyle='#000';x.fillRect(lx,my-11,w,22);x.fillStyle='#fff';x.textBaseline='middle';x.fillText(m.p,lx+5,my+1);x.textBaseline='top'}})}
+const ly=Math.max(1,Math.ceil(ps.length/3))*330+370;
+Object.entries(T).forEach(([k,[l,col]],n)=>{const lx=60+n*220;bub(x,lx+16,ly+12,16,col,n+1);x.fillStyle='#000';x.font='24px sans-serif';x.fillText(l,lx+42,ly)});
+let yy=ly+50;x.font='20px sans-serif';
+['ruim','arranhado','amassado','riscado','bom'].forEach(k=>{const l=T[k][0],a=PG.flatMap(g=>g[1]).filter(p=>c.pc[p]==k);if(!a.length)return;let line='';((Object.keys(T).indexOf(k)+1)+' '+l+': '+a.join(', ')).split(' ').forEach(w=>{const t=line?line+' '+w:w;if(x.measureText(t).width>1120){if(yy<1500)x.fillText(line,60,yy);yy+=26;line=w}else line=t});if(yy<1500)x.fillText(line,60,yy);yy+=30});
+if(c.sig){const im=await ld(c.sig);x.drawImage(im,60,1520,im.width/im.height*130,130)}
+x.fillStyle='#000';x.font='24px sans-serif';x.fillText('Assinatura do cliente: '+(H.nome||'')+' — '+fd(H.data),60,1675);return cv}
 function mkpdf(cv){const jb=Uint8Array.from(atob(cv.toDataURL('image/jpeg',.88).split(',')[1]),c=>c.charCodeAt(0)),e=new TextEncoder(),P=[],off=[];let n=0;
 const add=(...a)=>a.forEach(b=>{b=typeof b=='string'?e.encode(b):b;P.push(b);n+=b.length}),o=(i,s)=>{off[i]=n;add(i+' 0 obj\n'+s+'\nendobj\n')};
 add('%PDF-1.4\n');o(1,'<</Type/Catalog/Pages 2 0 R>>');o(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');

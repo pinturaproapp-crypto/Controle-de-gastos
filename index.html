@@ -10,7 +10,10 @@ body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,sans-seri
 .card{background:var(--cd);border:1px solid var(--ln);border-radius:22px;padding:16px;margin-bottom:14px}
 h2{font-size:16px;margin:0 0 12px}h1{font-size:20px;margin:0}
 small,.mu{color:var(--mu)}
-.g{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+.g{display:grid;gap:8px;margin-bottom:10px}.g:last-child{margin-bottom:0}
+#hdc{padding:14px}#hd label{font-size:10px;letter-spacing:.06em;white-space:nowrap;min-width:0;display:flex;flex-direction:column}
+#hd input{font-size:13px;padding:11px 7px;border-radius:12px;margin-top:5px}
+#hd input[data-k=os]{background:#2a2a2a;font-weight:700}
 label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu)}
 input,select{width:100%;min-width:0;margin-top:6px;background:#000;color:var(--tx);border:1px solid var(--ln);border-radius:14px;padding:12px;font:inherit}
 input::placeholder{color:#555}
@@ -23,8 +26,10 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 .ck label{display:flex;gap:12px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--tx);font-weight:400;padding:10px 0;border-top:1px solid var(--ln)}
 .ck input{width:20px;height:20px;margin:0;accent-color:#f2f2f2}
 .ck h2{display:flex;gap:8px;align-items:center}.ck h2 small{flex:1;font-weight:400}
-.ch{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
-.ch button{white-space:nowrap;border-radius:99px;padding:7px 12px;font-size:12px}
+.ch{display:flex;gap:4px;padding-bottom:8px;margin-bottom:4px}
+.ch button{display:flex;align-items:center;justify-content:center;gap:3px;flex:1 1 auto;min-width:0;white-space:nowrap;border-radius:99px;padding:7px 4px;font-size:10.5px}
+.ch .ok{border-color:#4ade80}
+.bb{width:16px;height:16px;border-radius:50%;border:1.5px solid;background:#000;font:600 10px monospace;font-style:normal;display:flex;align-items:center;justify-content:center;flex:none}
 .pb{position:relative;aspect-ratio:4/3;background:#0a0a0a;border:1px solid var(--ln);border-radius:14px;overflow:hidden;margin-bottom:8px}
 .pb img{width:100%;height:100%;object-fit:contain;display:block}
 .pb.e{display:flex;align-items:center;justify-content:center;color:var(--mu);cursor:pointer}
@@ -45,10 +50,10 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <div id="ed" hidden>
 <div class="bar"><button onclick="home()">← Lista</button><span id="st">salvo</span><button class="p" onclick="pdf()">Gerar PDF</button></div>
 <div class="w">
-<div class="card"><h2>Identificação</h2><div class="g" id="hd"></div></div>
-<div id="ck"></div>
-<div class="card"><h2>Mapa de avarias</h2><div class="ch" id="tp"></div><div class="ch" id="vw"></div><div id="pa"></div></div>
-<div class="card"><h2>Avarias</h2><div id="dl"></div></div>
+<div class="card" id="hdc"><div id="hd"></div></div>
+
+<div class="card" style="padding:14px 10px"><h2>Mapa de avarias</h2><div class="ch" id="tp"></div><div class="ch" id="vw"></div><div id="pa"></div></div>
+
 <div class="card"><h2>Assinatura do cliente</h2><canvas id="sg"></canvas><button class="sm" onclick="clr()">Limpar assinatura</button></div>
 </div></div></div>
 <div id="rep"></div>
@@ -56,8 +61,9 @@ button.p,.ch .on{background:#f2f2f2;color:#000;border-color:#f2f2f2;font-weight:
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),fd=d=>d?d.split('-').reverse().join('/'):'';
 const T={risco:['Risco','#facc15'],amassado:['Amassado','#38bdf8'],trinca:['Trinca','#c084fc'],quebrado:['Quebrado','#f87171'],ferrugem:['Ferrugem','#fb923c']};
-const VW=[['frente','Frente'],['le','Lateral esq.'],['ld','Lateral dir.'],['tras','Traseira'],['topo','Topo'],['painel','Painel / km'],['int','Interior']],VL=Object.fromEntries(VW);
-const F=[['nome','Nome do cliente',12],['cpf','CPF',6,'000.000.000-00'],['tel','Telefone',6,'(00) 00000-0000'],['data','Data entrada',5,'','date'],['os','Nº OS',3,'','number'],['placa','Placa',4],['veic','Veículo',6],['ano','Ano',3,'2021'],['cor','Cor',3,'Branco'],['km','KM',4,'00000'],['seg','Seguradora',8,'Opcional'],['end','Endereço',12]];
+const VW=[['frente','Frente'],['le','Lateral esq.'],['ld','Lateral dir.'],['tras','Traseira'],['topo','Topo'],['painel','Painel / km'],['int','Interior']],VL=Object.fromEntries(VW),SH={frente:'Frente',le:'Esq.',ld:'Dir.',tras:'Traseira',topo:'Topo',painel:'Painel',int:'Interior'};
+const F=[['nome','Nome do cliente',0,'Nome do cliente'],['cpf','CPF',0,'000.000.000-00'],['tel','Telefone',0,'(11) 90000-0000'],['data','Data entrada',0,'','date'],['os','Nº OS',0,'','number'],['veic','Veículo',0,'Gol 1.6 - 2019'],['placa','Placa',0,'ABC-1D23'],['ano','Ano',0,'2019'],['cor','Cor',0,'Prata'],['km','KM',0,'84.320'],['seg','Seguradora',0,'Se houver'],['end','Endereço',0,'Rua, número, bairro']];
+const R=[[['nome','cpf','tel'],'1.1fr 1fr 1fr'],[['data','os','veic','placa'],'2.6fr 1fr 2fr 2fr'],[['ano','cor','km','seg'],'1.5fr 1.9fr 1.7fr 2.4fr'],[['end'],'1fr']];
 const D=v=>v.replace(/\D/g,'');
 const MK={cpf:v=>{const d=D(v).slice(0,11);return[d.slice(0,3),d.slice(3,6),d.slice(6,9)].filter(Boolean).join('.')+(d.length>9?'-'+d.slice(9):'')},
 tel:v=>{const d=D(v).slice(0,11);return d.length>2?'('+d.slice(0,2)+') '+d.slice(2,7)+(d.length>7?'-'+d.slice(7):''):d},
@@ -75,9 +81,9 @@ const a=(await q('readonly',s=>s.getAll())).sort((a,b)=>b.upd-a.upd);
 $('#li').innerHTML=a.map(v=>`<div class="card r" onclick="op(${v.id})" style="cursor:pointer"><div style="flex:1"><b>OS ${esc(v.hdr.os)} · ${esc(v.hdr.nome||'Sem nome')}</b><br><small>${esc(v.hdr.veic||'')} ${esc(v.hdr.placa||'')} · ${v.mk.length} avaria(s) · ${fd(v.hdr.data)}</small></div><button class="sm" onclick="event.stopPropagation();del(${v.id})">Excluir</button></div>`).join('')||'<p class="mu">Nenhuma vistoria ainda. Toque em “Nova vistoria”.</p>'}
 async function nw(){const a=await q('readonly',s=>s.getAll());op({id:Date.now(),upd:Date.now(),hdr:{data:new Date().toLocaleDateString('sv'),os:a.reduce((m,v)=>Math.max(m,+v.hdr.os||0),0)+1},chk:{},ph:{},mk:[],sig:''})}
 async function del(id){if(confirm('Excluir esta vistoria?')){await q('readwrite',s=>s.delete(id));home()}}
-async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);hd();ck();pa();sg()}
+async function op(x){cur=typeof x=='object'?x:await q('readonly',s=>s.get(x));dirty=0;vw='frente';scr('ed');$('#st').textContent='salvo';window.scrollTo(0,0);hd();pa();sg()}
 /* cabeçalho */
-function hd(){$('#hd').innerHTML=F.map(([k,l,s,p,t])=>`<label style="grid-column:span ${s}">${l}<input data-k="${k}" type="${t||'text'}" ${t=='number'?'inputmode="numeric"':''} placeholder="${p||''}" value="${esc(cur.hdr[k]||'')}"></label>`).join('')}
+function hd(){$('#hd').innerHTML=R.map(([ks,c])=>`<div class="g" style="grid-template-columns:${c}">${ks.map(k=>{const[,l,,p,t]=F.find(f=>f[0]==k);return`<label>${l}<input data-k="${k}" type="${t||'text'}" ${t=='number'?'inputmode="numeric"':''} placeholder="${p||''}" value="${esc(cur.hdr[k]||'')}"></label>`}).join('')}</div>`).join('')}
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;if(MK[k])e.target.value=MK[k](e.target.value);cur.hdr[k]=e.target.value;sv()});
 /* checklist */
 function ck(){$('#ck').innerHTML=CK.map(([t,it],i)=>`<div class="card ck"><h2>${t} <small>${it.filter((_,j)=>cur.chk[i+'.'+j]).length}/${it.length}</small><button class="sm" onclick="all(${i})">Marcar todos</button></h2>${it.map((x,j)=>`<label><input type="checkbox" ${cur.chk[i+'.'+j]?'checked':''} onchange="tg('${i}.${j}')">${x}</label>`).join('')}</div>`).join('')}
@@ -87,11 +93,12 @@ function all(i){const it=CK[i][1],v=!it.every((_,j)=>cur.chk[i+'.'+j]);it.forEac
 const cmp=(f,M,Q)=>new Promise(r=>{const i=new Image;i.onload=()=>{const s=Math.min(1,M/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(i.src);r(c.toDataURL('image/jpeg',Q))};i.src=URL.createObjectURL(f)});
 const pick=cb=>{pend=cb;$('#fi').click()};
 $('#fi').onchange=e=>{const f=e.target.files[0];if(f&&pend)pend(f);e.target.value=''};
-const mks=v=>cur.mk.map((m,i)=>m.v==v?`<i class="mk" style="left:${m.x}%;top:${m.y}%;color:${T[m.t][1]}">${i+1}</i>`:'').join('');
-function pa(){$('#tp').innerHTML=Object.entries(T).map(([k,[l,c]])=>`<button class="${ty==k?'on':''}" onclick="ty='${k}';pa()"><b style="color:${ty==k?'#000':c}">●</b> ${l}</button>`).join('');
-$('#vw').innerHTML=VW.map(([k,l])=>`<button class="${vw==k?'on':''}" onclick="vw='${k}';pa()">${l}${cur.ph[k]?' ✓':''}</button>`).join('');
+const mks=v=>cur.mk.map((m,i)=>m.v==v?`<i class="mk" style="left:${m.x}%;top:${m.y}%;color:${T[m.t][1]}">${Object.keys(T).indexOf(m.t)+1}</i>`:'').join('');
+function pa(){$('#tp').innerHTML=Object.entries(T).map(([k,[l,c]],n)=>`<button class="${ty==k?'on':''}" onclick="ty='${k}';pa()"><i class="bb" style="color:${c}">${n+1}</i>${l}</button>`).join('');
+$('#vw').innerHTML=VW.map(([k])=>`<button class="${vw==k?'on':''} ${cur.ph[k]?'ok':''}" onclick="vw='${k}';pa()">${SH[k]}</button>`).join('');
 const p=cur.ph[vw];
-$('#pa').innerHTML=p?`<div class="pb" onclick="add(event)" style="cursor:crosshair"><img src="${p}">${mks(vw)}</div><div class="r"><button class="sm" onclick="foto()">Trocar foto</button><small>Toque na foto para marcar uma avaria (${T[ty][0]})</small></div>`:`<div class="pb e" onclick="foto()">Tirar foto: ${VL[vw]}</div>`;dl()}
+$('#pa').innerHTML=p?`<div class="pb" onclick="add(event)" style="cursor:crosshair"><img src="${p}">${mks(vw)}</div><div class="r"><button class="sm" onclick="foto()">Trocar foto</button><button class="sm" onclick="undo()">Desfazer última</button></div><p class="mu" style="margin:8px 0 0">Toque na foto para marcar uma avaria (${T[ty][0]}).</p>`:`<div class="pb e" onclick="foto()">Tirar foto: ${VL[vw]}</div>`}
+function undo(){const i=cur.mk.map(m=>m.v).lastIndexOf(vw);if(i>=0){cur.mk.splice(i,1);sv();pa()}}
 function foto(){pick(async f=>{cur.ph[vw]=await cmp(f,1100,.72);sv();pa()})}
 function add(e){const r=e.currentTarget.getBoundingClientRect();cur.mk.push({x:+((e.clientX-r.left)/r.width*100).toFixed(1),y:+((e.clientY-r.top)/r.height*100).toFixed(1),t:ty,v:vw,n:'',p:''});sv();pa()}
 function dl(){$('#dl').innerHTML=cur.mk.length?cur.mk.map((m,i)=>`<div class="dm"><div class="r"><b style="color:${T[m.t][1]}">${i+1}</b><span>${VL[m.v]}</span><select onchange="mu(${i},'t',this.value)">${Object.entries(T).map(([k,[l]])=>`<option value="${k}" ${m.t==k?'selected':''}>${l}</option>`).join('')}</select><button class="sm" onclick="rm(${i})">✕</button></div><input placeholder="Observação (ex.: risco de 10 cm na porta)" value="${esc(m.n)}" oninput="mu(${i},'n',this.value,1)"><div class="r">${m.p?`<img class="th" src="${m.p}">`:''}<button class="sm" onclick="cl(${i})">${m.p?'Trocar foto de perto':'Foto de perto'}</button></div></div>`).join(''):'<p class="mu">Nenhuma avaria marcada. Tire a foto de uma vista e toque onde está o dano.</p>'}
@@ -109,9 +116,8 @@ function clr(){const c=$('#sg');c.getContext('2d').clearRect(0,0,c.width,c.heigh
 /* relatório em PDF (imprimir > salvar como PDF) */
 function pdf(){const c=cur,H=c.hdr,old=document.title;
 $('#rep').innerHTML=`<h1>Vistoria de entrada</h1><div class="rg">${F.map(([k,l])=>`<div><b>${l}:</b> ${esc(k=='data'?fd(H[k]):H[k]||'—')}</div>`).join('')}</div>
-<h3>Checklist</h3><div class="rg">${CK.map(([t,it],i)=>`<div><b>${t}</b>${it.map((x,j)=>`<br>${c.chk[i+'.'+j]?'☑':'☐'} ${x}`).join('')}</div>`).join('')}</div>
 <h3>Fotos e marcações</h3><div class="rp">${VW.filter(([k])=>c.ph[k]).map(([k,l])=>`<div><b>${l}</b><div class="pb"><img src="${c.ph[k]}">${mks(k)}</div></div>`).join('')||'<p>Sem fotos.</p>'}</div>
-<h3>Lista de avarias</h3>${c.mk.length?c.mk.map((m,i)=>`<div class="ra"><b>${i+1}. ${T[m.t][0]}</b> (${VL[m.v]}) ${esc(m.n)}${m.p?`<br><img src="${m.p}">`:''}</div>`).join(''):'<p>Nenhuma avaria registrada.</p>'}
+<h3>Lista de avarias</h3>${c.mk.length?c.mk.map((m,i)=>`<div class="ra"><b>${Object.keys(T).indexOf(m.t)+1}. ${T[m.t][0]}</b> (${VL[m.v]}) ${esc(m.n)}${m.p?`<br><img src="${m.p}">`:''}</div>`).join(''):'<p>Nenhuma avaria registrada.</p>'}
 <h3>Assinatura do cliente</h3>${c.sig?`<img class="sg2" src="${c.sig}">`:'<p>(sem assinatura)</p>'}<p>${esc(H.nome||'')} — ${fd(H.data)}</p>`;
 document.title='Vistoria OS '+(H.os||'')+' '+(H.placa||'');print();document.title=old}
 </script></body></html>
